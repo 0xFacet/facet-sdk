@@ -5,13 +5,9 @@
 ## Table of Contents
 
 - [Installation](#installation)
-- [Features](#features)
 - [Usage](#usage)
   - [Configuration](#configuration)
   - [Examples](#examples)
-- [Integrations](#integrations)
-  - [Using with Wagmi](#using-with-wagmi)
-  - [Using with RainbowKit](#using-with-rainbowkit)
 - [Development](#development)
   - [Scripts](#scripts)
   - [Linting and Formatting](#linting-and-formatting)
