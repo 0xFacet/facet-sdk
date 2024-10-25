@@ -1,0 +1,62 @@
+{
+  "name": "@0xfacet/sdk",
+  "version": "0.0.1",
+  "private": false,
+  "description": "A toolkit for Facet blockchain integration.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./viem": "./dist/viem/index.js",
+    "./utils": "./dist/utils/index.js"
+  },
+  "scripts": {
+    "build": "rm -rf ./dist && tsc",
+    "prepare": "npm run build",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xFacet/facet-sdk.git"
+  },
+  "keywords": [
+    "facet",
+    "blockchain",
+    "viem",
+    "sdk"
+  ],
+  "author": "Facet <hello@facet.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/0xFacet/facet-sdk/issues"
+  },
+  "homepage": "https://github.com/0xFacet/facet-sdk#readme",
+  "dependencies": {
+    "viem": "^2.21.35"
+  },
+  "devDependencies": {
+    "@types/node": "^22.8.0",
+    "@typescript-eslint/eslint-plugin": "^8.11.0",
+    "@typescript-eslint/parser": "^8.11.0",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.1",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unicorn": "^56.0.0",
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}
