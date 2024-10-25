@@ -1,6 +1,6 @@
 {
   "name": "@0xfacet/sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "description": "A toolkit for Facet blockchain integration.",
   "main": "dist/index.js",
@@ -17,10 +17,6 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/0xFacet/facet-sdk.git"
   },
   "keywords": [
     "facet",
