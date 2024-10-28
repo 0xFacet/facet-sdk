@@ -13,7 +13,7 @@ export const sendFacetTransaction = async (
   params: FacetTransactionParams
 ) => {
   if (
-    l1WalletClient.chain?.id !== 1 &&
+    // l1WalletClient.chain?.id !== 1 &&
     l1WalletClient.chain?.id !== 11_155_111
   ) {
     throw new Error("Invalid L1 chain");
