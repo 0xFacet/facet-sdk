@@ -1,29 +1,29 @@
 import { keccak256 } from "viem";
 
-import { FacetTransactionParams } from "@/types";
-
 import { computeSourceHash } from "./computeSourceHash";
 import { encodeDepositTx } from "./encodeDepositTx";
 
 export const computeFacetTransactionHash = (
   l1TransactionHash: `0x${string}`,
-  params: FacetTransactionParams,
+  l1TxOrigin: `0x${string}`,
+  from: `0x${string}`,
+  to: `0x${string}`,
+  value: bigint,
+  data: `0x${string}`,
   gasLimit: bigint,
-  maxFeePerGas: bigint,
-  mintAmount: bigint
+  gasFeeCap: bigint,
+  mint: bigint
 ): `0x${string}` => {
-  const { to, value = 0n, data = "0x", account } = params;
-
   const sourceHash = computeSourceHash(l1TransactionHash);
 
   const encodedTx = encodeDepositTx({
     sourceHash,
-    l1TxOrigin: account.address,
-    from: account.address,
+    l1TxOrigin,
+    from,
     to,
-    mint: mintAmount,
+    mint,
     value,
-    gasFeeCap: maxFeePerGas,
+    gasFeeCap,
     gasLimit,
     data,
   });

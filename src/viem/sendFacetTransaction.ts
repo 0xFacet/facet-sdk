@@ -1,10 +1,9 @@
 import { WalletClient } from "viem";
 
-import { FacetTransactionParams } from "@/types";
-import { createFacetPublicClient } from "@/viem/createFacetPublicClient";
-
-import { computeFacetTransactionHash } from "./computeFacetTransactionHash";
-import { prepareFacetTransaction } from "./prepareFacetTransaction";
+import { FacetTransactionParams } from "../types";
+import { computeFacetTransactionHash } from "../utils/computeFacetTransactionHash";
+import { prepareFacetTransaction } from "../utils/prepareFacetTransaction";
+import { createFacetPublicClient } from "./createFacetPublicClient";
 
 const FACET_INBOX_ADDRESS =
   "0x00000000000000000000000000000000000FacE7" as const;
@@ -20,15 +19,20 @@ export const sendFacetTransaction = async (
     throw new Error("Invalid L1 chain");
   }
 
-  const facetPublicClient = createFacetPublicClient(l1WalletClient.chain?.id);
+  if (!l1WalletClient.account) {
+    throw new Error("No account");
+  }
+
+  const facetPublicClient = createFacetPublicClient(l1WalletClient.chain.id);
 
   const { encodedTransaction, values } = await prepareFacetTransaction(
     facetPublicClient,
+    l1WalletClient.account,
     params
   );
 
   const l1Transaction = {
-    account: params.account,
+    account: l1WalletClient.account,
     to: FACET_INBOX_ADDRESS,
     value: 0n,
     data: encodedTransaction,
@@ -39,7 +43,11 @@ export const sendFacetTransaction = async (
 
   const facetTransactionHash = computeFacetTransactionHash(
     l1TransactionHash,
-    params,
+    l1WalletClient.account.address,
+    l1WalletClient.account.address,
+    params.to,
+    params.value ?? 0n,
+    params.data ?? "0x",
     values.gasLimit,
     values.maxFeePerGas,
     values.mintAmount

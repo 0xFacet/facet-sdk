@@ -1,15 +1,13 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
-    "declaration": true,
-    "outDir": "./dist",
+    "module": "ESNext",
+    "outDir": "./dist/esm",
+    "declaration": false,
     "strict": true,
     "esModuleInterop": true,
+    "moduleResolution": "node",
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
     "skipLibCheck": true,
     "resolveJsonModule": true
   },

@@ -1,12 +1,11 @@
 # Facet SDK
 
-**Facet SDK** is a TypeScript-based SDK that allows users to interact seamlessly with the Facet blockchain ecosystem, including functionalities like transaction creation, transaction tracking, and integration with `viem`.
+**Facet SDK** is a TypeScript-based SDK that allows users to interact seamlessly with the Facet blockchain ecosystem, including functionalities like transaction creation and integration with `viem`.
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Configuration](#configuration)
   - [Examples](#examples)
 - [Development](#development)
   - [Scripts](#scripts)
@@ -30,10 +29,6 @@ yarn add @0xfacet/sdk
 
 ## Usage
 
-### Configuration
-
-**Facet SDK** supports both **WalletClient** and **PublicClient** from `viem` for interacting with Facet transactions. Make sure you configure the correct client (L1 for Ethereum transactions, L2 for Facet transactions).
-
 ### Examples
 
 #### 1. Basic Setup
@@ -41,27 +36,28 @@ yarn add @0xfacet/sdk
 Initialize the SDK by importing Facet chains and clients.
 
 ```typescript
-import { facetExtensions } from "@0xfacet/sdk";
+import { walletL1FacetActions } from "@0xfacet/sdk/viem";
 import { createWalletClient, http } from "viem";
 
 const walletClient = createWalletClient({
   chain: mainnet,
   transport: http(),
-}).extend(facetExtensions);
+}).extend(FacetViem.walletL1FacetActions);
 ```
 
 #### 2. Send a Facet Transaction
 
 ```typescript
 const params = {
-  account: { address: "0xYourAccountAddress" },
-  to: "0xReceiverAddress",
-  data: "0x", // Optional data
-  value: 0n,
+  to: "0xReceiverAddress", // Required
+  data: "0x", // Optional
+  value: 0n, // Optional
 };
 
-const l2TransactionHash = await walletClient.sendFacetTransaction(params);
-console.log("L2 Transaction Hash:", l2TransactionHash);
+const { l1TransactionHash, facetTransactionHash } =
+  await walletClient.sendFacetTransaction(params);
+console.log("L1 Transaction Hash:", l1TransactionHash);
+console.log("Facet Transaction Hash:", facetTransactionHash);
 ```
 
 ## Development
@@ -103,7 +99,3 @@ Contributions are welcome! Please follow the code style guidelines, linting, and
 ## License
 
 [MIT License](LICENSE)
-
----
-
-This README provides a comprehensive guide for users and developers interacting with **Facet SDK**. Let me know if there are specific details you’d like added or customized!

@@ -1,17 +1,31 @@
 {
   "name": "@0xfacet/sdk",
-  "version": "0.0.2",
+  "version": "0.0.10",
   "private": false,
   "description": "A toolkit for Facet blockchain integration.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "sideEffects": false,
   "exports": {
-    ".": "./dist/index.js",
-    "./viem": "./dist/viem/index.js",
-    "./utils": "./dist/utils/index.js"
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/esm/utils/index.js",
+      "require": "./dist/cjs/utils/index.js",
+      "types": "./dist/types/utils/index.d.ts"
+    },
+    "./viem": {
+      "import": "./dist/esm/viem/index.js",
+      "require": "./dist/cjs/viem/index.js",
+      "types": "./dist/types/viem/index.d.ts"
+    }
   },
   "scripts": {
-    "build": "rm -rf ./dist && tsc",
+    "build": "rm -rf ./dist && tsc -p tsconfig.cjs.json && tsc",
     "prepare": "npm run build",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
@@ -30,9 +44,6 @@
     "url": "https://github.com/0xFacet/facet-sdk/issues"
   },
   "homepage": "https://github.com/0xFacet/facet-sdk#readme",
-  "dependencies": {
-    "viem": "^2.21.35"
-  },
   "devDependencies": {
     "@types/node": "^22.8.0",
     "@typescript-eslint/eslint-plugin": "^8.11.0",
@@ -49,8 +60,11 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unicorn": "^56.0.0",
     "prettier": "^3.3.3",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.6.3"
+    "ts-node": "^10.9.2"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.4",
+    "viem": "2.x"
   },
   "files": [
     "dist/**/*"

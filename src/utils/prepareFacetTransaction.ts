@@ -1,15 +1,15 @@
-import { concatHex, PublicClient, toBytes, toHex, toRlp } from "viem";
+import { Account, concatHex, PublicClient, toBytes, toHex, toRlp } from "viem";
 
-import { FacetTransactionParams } from "@/types";
-
+import { FacetTransactionParams } from "../types";
 import { calculateInputCost } from "./calculateInputCost";
 import { decodeAttributes } from "./decodeAttributes";
 
 export const prepareFacetTransaction = async (
   facetPublicClient: PublicClient,
+  account: Account,
   params: FacetTransactionParams
 ) => {
-  const { to, value = 0n, data = "0x", account } = params;
+  const { to, value = 0n, data = "0x" } = params;
 
   const [estimateFeesPerGas, estimateGas, latestBlock] = await Promise.all([
     facetPublicClient.estimateFeesPerGas({
