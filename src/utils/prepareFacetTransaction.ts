@@ -35,11 +35,15 @@ export const prepareFacetTransaction = async (
   const attributes = decodeAttributes(latestTransaction.input);
   const { fctMintRate } = attributes;
 
+  if (!estimateFeesPerGas?.maxFeePerGas) {
+    throw new Error("Max fee per gas estimate not found");
+  }
+
   const transactionData = [
     toHex(facetPublicClient.chain.id), // L2 chain id
-    to, // L2 recipient address
+    to ?? "0x", // L2 recipient address
     toHex(value), // L2 value
-    toHex(estimateFeesPerGas?.maxFeePerGas || 0n), // Max fee per gas estimate
+    toHex(estimateFeesPerGas.maxFeePerGas), // Max fee per gas estimate
     toHex(estimateGas), // Estimated gas limit
     data, // L2 transaction data
   ];
@@ -55,7 +59,7 @@ export const prepareFacetTransaction = async (
   return {
     values: {
       mintAmount,
-      maxFeePerGas: estimateFeesPerGas?.maxFeePerGas,
+      maxFeePerGas: estimateFeesPerGas.maxFeePerGas,
       gasLimit: estimateGas,
     },
     encodedTransaction,

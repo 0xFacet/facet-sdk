@@ -33,24 +33,23 @@ export function decodeAttributes(calldata: `0x${string}`) {
   const batcherHash = toHex(data.slice(offset, offset + 32));
   offset += 32;
 
-  const fctMintRate = BigInt(toHex(data.slice(offset, offset + 32)));
-  offset += 32;
+  const fctMintPeriodL1DataGas = BigInt(toHex(data.slice(offset, offset + 16)));
+  offset += 16;
 
-  const fctMintedInRateAdjustmentPeriod = BigInt(
-    toHex(data.slice(offset, offset + 32))
-  );
+  const fctMintRate = BigInt(toHex(data.slice(offset, offset + 16)));
+  offset += 16;
 
   return {
     timestamp,
     number,
     baseFee,
     blobBaseFee,
-    hash,
-    batcherHash,
+    hash: `0x${hash}`,
+    batcherHash: `0x${batcherHash}`,
     sequenceNumber,
     blobBaseFeeScalar,
     baseFeeScalar,
     fctMintRate,
-    fctMintedInRateAdjustmentPeriod,
+    fctMintPeriodL1DataGas,
   };
 }
