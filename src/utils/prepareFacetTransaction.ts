@@ -39,13 +39,16 @@ export const prepareFacetTransaction = async (
     throw new Error("Max fee per gas estimate not found");
   }
 
+  const gasFeeCap = estimateFeesPerGas.maxFeePerGas;
+  const gasLimit = estimateGas;
+  
   const transactionData = [
     toHex(facetPublicClient.chain.id), // L2 chain id
     to ?? "0x", // L2 recipient address
-    toHex(value), // L2 value
-    toHex(estimateFeesPerGas.maxFeePerGas), // Max fee per gas estimate
-    toHex(estimateGas), // Estimated gas limit
-    data, // L2 transaction data
+    value ? toHex(value) : "0x", // L2 value
+    gasFeeCap ? toHex(gasFeeCap) : "0x", // Max fee per gas estimate
+    gasLimit ? toHex(gasLimit) : "0x", // Estimated gas limit
+    data ?? "0x", // L2 transaction data
   ];
 
   // Extra data to mine more
