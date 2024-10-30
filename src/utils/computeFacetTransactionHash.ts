@@ -7,7 +7,7 @@ export const computeFacetTransactionHash = (
   l1TransactionHash: `0x${string}`,
   l1TxOrigin: `0x${string}`,
   from: `0x${string}`,
-  to: `0x${string}`,
+  to: `0x${string}` | null,
   value: bigint,
   data: `0x${string}`,
   gasLimit: bigint,

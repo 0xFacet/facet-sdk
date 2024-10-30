@@ -23,7 +23,7 @@ export const encodeDepositTx = (tx: DepositTx): `0x${string}` => {
     tx.gasFeeCap ? toHex(tx.gasFeeCap) : "0x",
     tx.gasLimit ? toHex(tx.gasLimit) : "0x",
     "0x",
-    tx.data ?? "0x",
+    tx.data,
   ] as `0x${string}`[];
   return concatHex(["0x7e", toRlp(serializedTransaction)]);
 };
