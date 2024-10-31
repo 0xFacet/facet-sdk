@@ -27,7 +27,7 @@ export const sendFacetTransaction = async (
 
   const { encodedTransaction, values } = await prepareFacetTransaction(
     facetPublicClient,
-    l1WalletClient.account,
+    l1WalletClient.account.address,
     params
   );
 
@@ -45,7 +45,7 @@ export const sendFacetTransaction = async (
     l1TransactionHash,
     l1WalletClient.account.address,
     l1WalletClient.account.address,
-    params.to,
+    params.to ?? "0x",
     params.value ?? 0n,
     params.data ?? "0x",
     values.gasLimit,

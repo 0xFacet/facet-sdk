@@ -1,14 +1,12 @@
-import { Chain } from "viem";
+import { defineChain } from "viem";
+import { mainnet, sepolia } from "viem/chains";
+import { chainConfig } from "viem/op-stack";
 
 // Facet Sepolia Testnet Configuration
-export const facetSepolia = {
+export const facetSepolia = defineChain({
   id: 0xface7a,
   name: "Facet Sepolia",
-  nativeCurrency: {
-    decimals: 18,
-    name: "Facet Compute Token",
-    symbol: "FCT",
-  },
+  nativeCurrency: { name: "Facet Compute Token", symbol: "FCT", decimals: 18 },
   rpcUrls: {
     default: {
       http: ["https://sepolia.facet.org"],
@@ -20,18 +18,33 @@ export const facetSepolia = {
       url: "https://sepolia.explorer.facet.org",
     },
   },
-  testnet: true,
-} as const satisfies Chain;
+  contracts: {
+    ...chainConfig.contracts,
+    l2OutputOracle: {
+      [sepolia.id]: {
+        address: "0xDf9aF3B2e9617D53FD2E0096859ec7f4db6c96c9",
+      },
+    },
+    portal: {
+      [sepolia.id]: {
+        address: "0x34936f885d551C5f887Ed50bDc02eEB89F015930",
+      },
+    },
+    l1StandardBridge: {
+      [sepolia.id]: {
+        address: "0x46787ffeC1be4dc1c9D8eaD9dE3B83E41063C772",
+      },
+    },
+  },
+  sourceId: sepolia.id,
+});
 
 // Facet Mainnet Configuration
-export const facetMainnet = {
+export const facetMainnet = defineChain({
+  ...chainConfig,
   id: 0xface7,
-  name: "Facet",
-  nativeCurrency: {
-    decimals: 18,
-    name: "Facet Compute Token",
-    symbol: "FCT",
-  },
+  name: "Facet Mainnet",
+  nativeCurrency: { name: "Facet Compute Token", symbol: "FCT", decimals: 18 },
   rpcUrls: {
     default: {
       http: ["https://mainnet.facet.org"],
@@ -43,4 +56,8 @@ export const facetMainnet = {
       url: "https://explorer.facet.org",
     },
   },
-} as const satisfies Chain;
+  contracts: {
+    ...chainConfig.contracts,
+  },
+  sourceId: mainnet.id,
+});

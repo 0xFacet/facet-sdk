@@ -1,15 +1,15 @@
-import { Account, concatHex, PublicClient, toBytes, toHex, toRlp } from "viem";
+import { concatHex, toBytes, toHex, toRlp } from "viem";
 
-import { FacetTransactionParams } from "../types";
+import { FacetPublicClient, FacetTransactionParams } from "../types";
 import { calculateInputCost } from "./calculateInputCost";
 import { decodeAttributes } from "./decodeAttributes";
 
 export const prepareFacetTransaction = async (
-  facetPublicClient: PublicClient,
-  account: Account,
+  facetPublicClient: FacetPublicClient,
+  fromAddress: `0x${string}`,
   params: FacetTransactionParams
 ) => {
-  const { to, value = 0n, data = "0x", extraData } = params;
+  const { to, value, data, extraData } = params;
 
   if (!facetPublicClient.chain) {
     throw new Error("Facet chain not found");
@@ -21,7 +21,7 @@ export const prepareFacetTransaction = async (
       chain: facetPublicClient.chain,
     }),
     facetPublicClient.estimateGas({
-      account: account.address,
+      account: fromAddress,
       to,
       value,
       data,
@@ -41,7 +41,7 @@ export const prepareFacetTransaction = async (
 
   const gasFeeCap = estimateFeesPerGas.maxFeePerGas;
   const gasLimit = estimateGas;
-  
+
   const transactionData = [
     toHex(facetPublicClient.chain.id), // L2 chain id
     to ?? "0x", // L2 recipient address

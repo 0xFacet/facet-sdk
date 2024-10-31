@@ -4,7 +4,7 @@ interface DepositTx {
   sourceHash: `0x${string}`;
   l1TxOrigin: `0x${string}`;
   from: `0x${string}`;
-  to: `0x${string}` | null;
+  to: `0x${string}`;
   mint: bigint;
   value: bigint;
   gasFeeCap: bigint;
@@ -17,7 +17,7 @@ export const encodeDepositTx = (tx: DepositTx): `0x${string}` => {
     tx.sourceHash,
     tx.l1TxOrigin,
     tx.from,
-    tx.to ?? "0x",
+    tx.to,
     tx.mint ? toHex(tx.mint) : "0x",
     tx.value ? toHex(tx.value) : "0x",
     tx.gasFeeCap ? toHex(tx.gasFeeCap) : "0x",
