@@ -3,6 +3,4 @@ export interface FacetTransactionParams {
   to?: `0x${string}` | null | undefined;
   value?: bigint | undefined;
   extraData?: `0x${string}` | undefined;
-  maxFeePerGas?: bigint | undefined;
-  gasLimit?: bigint | undefined;
 }

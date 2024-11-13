@@ -6,7 +6,10 @@ import { calculateInputCost } from "./calculateInputCost";
 export const prepareFacetTransaction = async (
   l2ChainId: number,
   fctMintRate: bigint,
-  params: FacetTransactionParams
+  params: FacetTransactionParams & {
+    maxFeePerGas: bigint | undefined;
+    gasLimit: bigint | undefined;
+  }
 ) => {
   const { to, value, data, extraData, maxFeePerGas, gasLimit } = params;
 

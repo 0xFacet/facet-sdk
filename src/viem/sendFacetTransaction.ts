@@ -30,12 +30,32 @@ export const sendFacetTransaction = async (
     throw new Error("L2 chain not configured");
   }
 
-  const fctMintRate = await getFctMintRate(l1WalletClient.chain.id);
+  const [estimateFeesPerGasRes, estimateGasRes, fctMintRate] =
+    await Promise.all([
+      facetPublicClient.estimateFeesPerGas({
+        type: "eip1559",
+        chain: facetPublicClient.chain,
+      }),
+      facetPublicClient.estimateGas({
+        account: l1WalletClient.account,
+        to: params.to,
+        value: params.value,
+        data: params.data,
+      }),
+      getFctMintRate(l1WalletClient.chain.id),
+    ]);
+
+  if (!estimateFeesPerGasRes?.maxFeePerGas) {
+    throw new Error("Max fee per gas estimate not found");
+  }
+
+  const { maxFeePerGas } = estimateFeesPerGasRes;
+  const gasLimit = estimateGasRes;
 
   const { encodedTransaction, fctMintAmount } = await prepareFacetTransaction(
     facetPublicClient.chain.id,
     fctMintRate,
-    params
+    { ...params, maxFeePerGas, gasLimit }
   );
 
   const l1Transaction = {
@@ -55,9 +75,9 @@ export const sendFacetTransaction = async (
     params.to ?? "0x",
     params.value ?? 0n,
     params.data ?? "0x",
-    params.gasLimit ?? 0n,
-    params.maxFeePerGas ?? 0n,
-    fctMintAmount ?? 0n
+    gasLimit,
+    maxFeePerGas,
+    fctMintAmount
   );
 
   return { l1TransactionHash, facetTransactionHash };
