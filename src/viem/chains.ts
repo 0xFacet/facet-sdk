@@ -41,7 +41,6 @@ export const facetSepolia = defineChain({
 
 // Facet Mainnet Configuration
 export const facetMainnet = defineChain({
-  ...chainConfig,
   id: 0xface7,
   name: "Facet Mainnet",
   nativeCurrency: { name: "Facet Compute Token", symbol: "FCT", decimals: 18 },
@@ -58,6 +57,21 @@ export const facetMainnet = defineChain({
   },
   contracts: {
     ...chainConfig.contracts,
+    l2OutputOracle: {
+      [sepolia.id]: {
+        address: "0xDf9aF3B2e9617D53FD2E0096859ec7f4db6c96c9",
+      },
+    },
+    portal: {
+      [sepolia.id]: {
+        address: "0x34936f885d551C5f887Ed50bDc02eEB89F015930",
+      },
+    },
+    l1StandardBridge: {
+      [sepolia.id]: {
+        address: "0x46787ffeC1be4dc1c9D8eaD9dE3B83E41063C772",
+      },
+    },
   },
   sourceId: mainnet.id,
 });

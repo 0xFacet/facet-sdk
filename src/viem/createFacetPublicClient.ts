@@ -1,8 +1,25 @@
-import { createPublicClient, http } from "viem";
-import { publicActionsL2 } from "viem/op-stack";
+import {
+  Account,
+  Chain,
+  Client,
+  createPublicClient,
+  http,
+  PublicActions,
+  RpcSchema,
+  Transport,
+} from "viem";
+import { PublicActionsL2, publicActionsL2 } from "viem/op-stack";
 
-import { facetSepolia } from "../chains";
-import { FacetPublicClient } from "../types";
+import { facetSepolia } from "./chains";
+
+export type FacetPublicClient = Client<
+  Transport,
+  Chain | undefined,
+  Account | undefined,
+  RpcSchema,
+  PublicActions<Transport, Chain | undefined, Account | undefined> &
+    PublicActionsL2<Chain | undefined, Account | undefined>
+>;
 
 export const createFacetPublicClient = (
   l1ChainId: 1 | 11_155_111

@@ -4,6 +4,7 @@ import { FacetTransactionParams } from "../types";
 import { computeFacetTransactionHash } from "../utils/computeFacetTransactionHash";
 import { prepareFacetTransaction } from "../utils/prepareFacetTransaction";
 import { createFacetPublicClient } from "./createFacetPublicClient";
+import { getFctMintRate } from "./getFctMintRate";
 
 const FACET_INBOX_ADDRESS =
   "0x00000000000000000000000000000000000FacE7" as const;
@@ -25,9 +26,15 @@ export const sendFacetTransaction = async (
 
   const facetPublicClient = createFacetPublicClient(l1WalletClient.chain.id);
 
-  const { encodedTransaction, values } = await prepareFacetTransaction(
-    facetPublicClient,
-    l1WalletClient.account.address,
+  if (!facetPublicClient.chain) {
+    throw new Error("L2 chain not configured");
+  }
+
+  const fctMintRate = await getFctMintRate(l1WalletClient.chain.id);
+
+  const { encodedTransaction, fctMintAmount } = await prepareFacetTransaction(
+    facetPublicClient.chain.id,
+    fctMintRate,
     params
   );
 
@@ -48,9 +55,9 @@ export const sendFacetTransaction = async (
     params.to ?? "0x",
     params.value ?? 0n,
     params.data ?? "0x",
-    values.gasLimit,
-    values.maxFeePerGas,
-    values.mintAmount
+    params.gasLimit ?? 0n,
+    params.maxFeePerGas ?? 0n,
+    fctMintAmount ?? 0n
   );
 
   return { l1TransactionHash, facetTransactionHash };
