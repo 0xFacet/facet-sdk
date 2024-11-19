@@ -42,7 +42,7 @@ import { createWalletClient, http } from "viem";
 const walletClient = createWalletClient({
   chain: mainnet,
   transport: http(),
-}).extend(FacetViem.walletL1FacetActions);
+}).extend(walletL1FacetActions);
 ```
 
 #### 2. Send a Facet Transaction
@@ -54,10 +54,12 @@ const params = {
   value: 0n, // Optional
 };
 
-const { l1TransactionHash, facetTransactionHash } =
+const { l1TransactionHash, facetTransactionHash, fctMintAmount, fctMintRate } =
   await walletClient.sendFacetTransaction(params);
 console.log("L1 Transaction Hash:", l1TransactionHash);
 console.log("Facet Transaction Hash:", facetTransactionHash);
+console.log("FCT Mined:", fctMintAmount);
+console.log("FCT Mint Rate:", fctMintRate);
 ```
 
 ## Development

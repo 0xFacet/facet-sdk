@@ -80,5 +80,10 @@ export const sendFacetTransaction = async (
     fctMintAmount
   );
 
-  return { l1TransactionHash, facetTransactionHash };
+  return {
+    l1TransactionHash,
+    facetTransactionHash,
+    fctMintAmount,
+    fctMintRate,
+  };
 };
