@@ -1,4 +1,4 @@
-import { WalletClient } from "viem";
+import { maxUint256, WalletClient } from "viem";
 
 import { FacetTransactionParams } from "../types";
 import { computeFacetTransactionHash } from "../utils/computeFacetTransactionHash";
@@ -41,6 +41,9 @@ export const sendFacetTransaction = async (
         to: params.to,
         value: params.value,
         data: params.data,
+        stateOverride: [
+          { address: l1WalletClient.account.address, balance: maxUint256 },
+        ],
       }),
       getFctMintRate(l1WalletClient.chain.id),
     ]);
