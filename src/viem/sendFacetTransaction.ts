@@ -30,7 +30,7 @@ export const sendFacetTransaction = async (
     throw new Error("L2 chain not configured");
   }
 
-  const [estimateFeesPerGasRes, estimateGasRes, fctMintRate] =
+  const [estimateFeesPerGasRes, estimateGasRes, fctBalance, fctMintRate] =
     await Promise.all([
       facetPublicClient.estimateFeesPerGas({
         type: "eip1559",
@@ -44,6 +44,9 @@ export const sendFacetTransaction = async (
         stateOverride: [
           { address: l1WalletClient.account.address, balance: maxUint256 },
         ],
+      }),
+      facetPublicClient.getBalance({
+        address: l1WalletClient.account.address,
       }),
       getFctMintRate(l1WalletClient.chain.id),
     ]);
@@ -60,6 +63,21 @@ export const sendFacetTransaction = async (
     fctMintRate,
     { ...params, maxFeePerGas, gasLimit }
   );
+
+  // Call estimateGas again but with an accurate future balance
+  // This will allow it to correctly revert when necessary
+  await facetPublicClient.estimateGas({
+    account: l1WalletClient.account,
+    to: params.to,
+    value: params.value,
+    data: params.data,
+    stateOverride: [
+      {
+        address: l1WalletClient.account.address,
+        balance: fctBalance + fctMintAmount,
+      },
+    ],
+  });
 
   const l1Transaction = {
     account: l1WalletClient.account,
