@@ -10,7 +10,7 @@ export const prepareFacetTransaction = async (
     gasLimit: bigint | undefined;
   }
 ) => {
-  const { to, value, data, extraData, gasLimit } = params;
+  const { to, value, data, mineBoost, gasLimit } = params;
 
   const transactionData = [
     toHex(l2ChainId),
@@ -18,7 +18,7 @@ export const prepareFacetTransaction = async (
     value ? toHex(value) : "0x",
     gasLimit ? toHex(gasLimit) : "0x",
     data ?? "0x",
-    extraData ?? "0x",
+    mineBoost ?? "0x",
   ];
 
   const encodedTransaction = concatHex([toHex(70), toRlp(transactionData)]);
