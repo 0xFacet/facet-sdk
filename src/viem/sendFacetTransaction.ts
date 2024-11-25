@@ -1,4 +1,4 @@
-import { maxUint256, WalletClient } from "viem";
+import { Account, maxUint256, WalletClient } from "viem";
 
 import { FacetTransactionParams } from "../types";
 import { computeFacetTransactionHash } from "../utils/computeFacetTransactionHash";
@@ -6,25 +6,33 @@ import { prepareFacetTransaction } from "../utils/prepareFacetTransaction";
 import { createFacetPublicClient } from "./createFacetPublicClient";
 import { getFctMintRate } from "./getFctMintRate";
 
-const FACET_INBOX_ADDRESS =
+export const FACET_INBOX_ADDRESS =
   "0x00000000000000000000000000000000000FacE7" as const;
 
 export const sendFacetTransaction = async (
   l1WalletClient: WalletClient,
   params: FacetTransactionParams
 ) => {
+  const selectedChain = params.chain || l1WalletClient.chain;
+  const account =
+    (params.account as Account)?.address || params.account || l1WalletClient.account;
+
   if (
-    // l1WalletClient.chain?.id !== 1 &&
-    l1WalletClient.chain?.id !== 11_155_111
+    // selectedChain?.id !== 1 &&
+    selectedChain?.id !== 11_155_111
   ) {
-    throw new Error("Invalid L1 chain");
+    throw new Error("Invalid L1 chain, currently only Sepolia (11155111)");
   }
 
-  if (!l1WalletClient.account) {
-    throw new Error("No account");
+  if (!account) {
+    throw new Error(
+      "No valid account provided when calling sendFacetTransaction",
+    );
   }
 
-  const facetPublicClient = createFacetPublicClient(l1WalletClient.chain.id);
+  const facetPublicClient = createFacetPublicClient(
+    selectedChain,
+  );
 
   if (!facetPublicClient.chain) {
     throw new Error("L2 chain not configured");
@@ -37,18 +45,21 @@ export const sendFacetTransaction = async (
         chain: facetPublicClient.chain,
       }),
       facetPublicClient.estimateGas({
-        account: l1WalletClient.account,
+        account,
         to: params.to,
         value: params.value,
         data: params.data,
         stateOverride: [
-          { address: l1WalletClient.account.address, balance: maxUint256 },
+          {
+            address: (account as any)?.address || account,
+            balance: maxUint256,
+          },
         ],
       }),
       facetPublicClient.getBalance({
-        address: l1WalletClient.account.address,
+        address: (account as any)?.address || account,
       }),
-      getFctMintRate(l1WalletClient.chain.id),
+      getFctMintRate(facetPublicClient.chain),
     ]);
 
   if (!estimateFeesPerGasRes?.maxFeePerGas) {
@@ -57,30 +68,29 @@ export const sendFacetTransaction = async (
 
   const { maxFeePerGas } = estimateFeesPerGasRes;
   const gasLimit = estimateGasRes;
-
   const { encodedTransaction, fctMintAmount } = await prepareFacetTransaction(
     facetPublicClient.chain.id,
     fctMintRate,
-    { ...params, maxFeePerGas, gasLimit }
+    { ...params, maxFeePerGas, gasLimit },
   );
 
   // Call estimateGas again but with an accurate future balance
   // This will allow it to correctly revert when necessary
   await facetPublicClient.estimateGas({
-    account: l1WalletClient.account,
+    account,
     to: params.to,
     value: params.value,
     data: params.data,
     stateOverride: [
       {
-        address: l1WalletClient.account.address,
+        address: (account as any)?.address || account,
         balance: fctBalance + fctMintAmount,
       },
     ],
   });
 
   const l1Transaction = {
-    account: l1WalletClient.account,
+    account,
     to: FACET_INBOX_ADDRESS,
     value: 0n,
     data: encodedTransaction,
@@ -91,14 +101,14 @@ export const sendFacetTransaction = async (
 
   const facetTransactionHash = computeFacetTransactionHash(
     l1TransactionHash,
-    l1WalletClient.account.address,
-    l1WalletClient.account.address,
+    (account as any)?.address || account,
+    (account as any)?.address || account,
     params.to ?? "0x",
     params.value ?? 0n,
     params.data ?? "0x",
     gasLimit,
     maxFeePerGas,
-    fctMintAmount
+    fctMintAmount,
   );
 
   return {
