@@ -1,10 +1,11 @@
+import { Chain } from "viem";
 import { createFacetPublicClient } from "./createFacetPublicClient";
 
 const L1_BLOCK_CONTRACT =
   "0x4200000000000000000000000000000000000015" as `0x${string}`;
 
-export const getFctMintRate = async (l1ChainId: 1 | 11155111) => {
-  const facetPublicClient = createFacetPublicClient(l1ChainId);
+export const getFctMintRate = async (chain: Chain) => {
+  const facetPublicClient = createFacetPublicClient(chain);
 
   const fctMintRate = await facetPublicClient.readContract({
     address: L1_BLOCK_CONTRACT,
