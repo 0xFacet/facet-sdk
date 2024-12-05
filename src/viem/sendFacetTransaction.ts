@@ -30,38 +30,28 @@ export const sendFacetTransaction = async (
     throw new Error("L2 chain not configured");
   }
 
-  const [estimateFeesPerGasRes, estimateGasRes, fctBalance, fctMintRate] =
-    await Promise.all([
-      facetPublicClient.estimateFeesPerGas({
-        type: "eip1559",
-        chain: facetPublicClient.chain,
-      }),
-      facetPublicClient.estimateGas({
-        account: l1WalletClient.account,
-        to: params.to,
-        value: params.value,
-        data: params.data,
-        stateOverride: [
-          { address: l1WalletClient.account.address, balance: maxUint256 },
-        ],
-      }),
-      facetPublicClient.getBalance({
-        address: l1WalletClient.account.address,
-      }),
-      getFctMintRate(l1WalletClient.chain.id),
-    ]);
+  const [estimateGasRes, fctBalance, fctMintRate] = await Promise.all([
+    facetPublicClient.estimateGas({
+      account: l1WalletClient.account,
+      to: params.to,
+      value: params.value,
+      data: params.data,
+      stateOverride: [
+        { address: l1WalletClient.account.address, balance: maxUint256 },
+      ],
+    }),
+    facetPublicClient.getBalance({
+      address: l1WalletClient.account.address,
+    }),
+    getFctMintRate(l1WalletClient.chain.id),
+  ]);
 
-  if (!estimateFeesPerGasRes?.maxFeePerGas) {
-    throw new Error("Max fee per gas estimate not found");
-  }
-
-  const { maxFeePerGas } = estimateFeesPerGasRes;
   const gasLimit = estimateGasRes;
 
   const { encodedTransaction, fctMintAmount } = await prepareFacetTransaction(
     facetPublicClient.chain.id,
     fctMintRate,
-    { ...params, maxFeePerGas, gasLimit }
+    { ...params, gasLimit }
   );
 
   // Call estimateGas again but with an accurate future balance
@@ -92,12 +82,10 @@ export const sendFacetTransaction = async (
   const facetTransactionHash = computeFacetTransactionHash(
     l1TransactionHash,
     l1WalletClient.account.address,
-    l1WalletClient.account.address,
     params.to ?? "0x",
     params.value ?? 0n,
     params.data ?? "0x",
     gasLimit,
-    maxFeePerGas,
     fctMintAmount
   );
 
