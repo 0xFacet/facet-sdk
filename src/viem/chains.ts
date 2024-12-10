@@ -59,17 +59,17 @@ export const facetMainnet = defineChain({
     ...chainConfig.contracts,
     l2OutputOracle: {
       [sepolia.id]: {
-        address: "" as any,
+        address: "0x",
       },
     },
     portal: {
       [sepolia.id]: {
-        address: "" as any,
+        address: "0x",
       },
     },
     l1StandardBridge: {
       [sepolia.id]: {
-        address: "" as any,
+        address: "0x",
       },
     },
   },

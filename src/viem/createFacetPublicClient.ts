@@ -10,7 +10,7 @@ import {
 } from "viem";
 import { PublicActionsL2, publicActionsL2 } from "viem/op-stack";
 
-import { facetSepolia } from "./chains";
+import { facetMainnet, facetSepolia } from "./chains";
 
 export type FacetPublicClient = Client<
   Transport,
@@ -24,11 +24,8 @@ export type FacetPublicClient = Client<
 export const createFacetPublicClient = (
   l1ChainId: 1 | 11_155_111
 ): FacetPublicClient => {
-  if (l1ChainId === 1) {
-    throw new Error("Facet is not on mainnet");
-  }
   return createPublicClient({
-    chain: facetSepolia,
+    chain: l1ChainId === 1 ? facetMainnet : facetSepolia,
     transport: http(),
   }).extend(publicActionsL2());
 };
