@@ -1,4 +1,4 @@
-export { facetSepolia } from "./chains";
+export { facetMainnet, facetSepolia } from "./chains";
 export {
   createFacetPublicClient,
   FacetPublicClient,
