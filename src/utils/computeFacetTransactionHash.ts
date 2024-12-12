@@ -1,6 +1,5 @@
 import { keccak256 } from "viem";
 
-import { computeSourceHash } from "./computeSourceHash";
 import { encodeDepositTx } from "./encodeDepositTx";
 
 export const computeFacetTransactionHash = (
@@ -12,10 +11,8 @@ export const computeFacetTransactionHash = (
   gasLimit: bigint,
   mint: bigint
 ): `0x${string}` => {
-  const sourceHash = computeSourceHash(l1TransactionHash);
-
   const encodedTx = encodeDepositTx({
-    sourceHash,
+    sourceHash: l1TransactionHash,
     from,
     to,
     mint,
