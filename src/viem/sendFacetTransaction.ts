@@ -1,4 +1,5 @@
-import { maxUint256, WalletClient } from "viem";
+import { createPublicClient, http, maxUint256, WalletClient } from "viem";
+import { mainnet, sepolia } from "viem/chains";
 
 import { FacetTransactionParams } from "../types";
 import { computeFacetTransactionHash } from "../utils/computeFacetTransactionHash";
@@ -77,7 +78,16 @@ export const sendFacetTransaction = async (
     chain: l1WalletClient.chain,
   };
 
-  const l1TransactionHash = await l1WalletClient.sendTransaction(l1Transaction);
+  const l1PublicClient = createPublicClient({
+    chain: l1WalletClient.chain.id === 1 ? mainnet : sepolia,
+    transport: http(),
+  });
+  const estimateL1Gas = await l1PublicClient.estimateGas(l1Transaction);
+
+  const l1TransactionHash = await l1WalletClient.sendTransaction({
+    ...l1Transaction,
+    gas: estimateL1Gas,
+  });
 
   const facetTransactionHash = computeFacetTransactionHash(
     l1TransactionHash,
