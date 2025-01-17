@@ -35,6 +35,7 @@ export const facetSepolia = defineChain({
         address: "0xEe49E40B2ef8C98011DB5B4999D93E8B766a7241",
       },
     },
+    multicall3: { address: "0xcA11bde05977b3631167028862bE2a173976CA11" },
   },
   sourceId: sepolia.id,
 });
@@ -72,6 +73,7 @@ export const facetMainnet = defineChain({
         address: "0x8F75466D69a52EF53C7363F38834bEfC027A2909",
       },
     },
+    multicall3: { address: "0xcA11bde05977b3631167028862bE2a173976CA11" },
   },
   sourceId: mainnet.id,
 });
