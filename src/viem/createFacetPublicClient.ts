@@ -4,6 +4,7 @@ import {
   Client,
   createPublicClient,
   http,
+  HttpTransport,
   PublicActions,
   RpcSchema,
   Transport,
@@ -22,10 +23,11 @@ export type FacetPublicClient = Client<
 >;
 
 export const createFacetPublicClient = (
-  l1ChainId: 1 | 11_155_111
+  l1ChainId: 1 | 11_155_111,
+  transport?: HttpTransport
 ): FacetPublicClient => {
   return createPublicClient({
     chain: l1ChainId === 1 ? facetMainnet : facetSepolia,
-    transport: http(),
+    transport: transport ?? http(),
   }).extend(publicActionsL2());
 };
