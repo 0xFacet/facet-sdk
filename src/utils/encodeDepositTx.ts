@@ -1,16 +1,21 @@
-import { concatHex, toHex, toRlp } from "viem";
+import { concatHex, Hex, toHex, toRlp } from "viem";
 
-interface DepositTx {
-  sourceHash: `0x${string}`;
-  from: `0x${string}`;
-  to: `0x${string}`;
-  mint: bigint;
-  value: bigint;
-  gasLimit: bigint;
-  data: `0x${string}`;
-}
+import { DepositTx } from "../types";
 
-export const encodeDepositTx = (tx: DepositTx): `0x${string}` => {
+/**
+ * Encodes a deposit transaction into a serialized hex format.
+ *
+ * @param tx - The deposit transaction to encode
+ * @param tx.sourceHash - The hash of the source transaction
+ * @param tx.from - The address sending the transaction
+ * @param tx.to - The recipient address
+ * @param tx.mint - Optional amount to mint (will be converted to hex)
+ * @param tx.value - Optional value to transfer (will be converted to hex)
+ * @param tx.gasLimit - Optional gas limit (will be converted to hex)
+ * @param tx.data - The calldata for the transaction
+ * @returns A hex string of the encoded transaction
+ */
+export const encodeDepositTx = (tx: DepositTx): Hex => {
   const serializedTransaction = [
     tx.sourceHash,
     tx.from,
@@ -20,6 +25,6 @@ export const encodeDepositTx = (tx: DepositTx): `0x${string}` => {
     tx.gasLimit ? toHex(tx.gasLimit) : "0x",
     "0x",
     tx.data,
-  ] as `0x${string}`[];
+  ] as Hex[];
   return concatHex(["0x7e", toRlp(serializedTransaction)]);
 };

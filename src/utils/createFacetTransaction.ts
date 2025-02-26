@@ -1,24 +1,23 @@
 import { Address, createPublicClient, Hex, http, maxUint256 } from "viem";
 import { mainnet, sepolia } from "viem/chains";
 
-import { FacetTransactionParams } from "../types";
+import { FACET_INBOX_ADDRESS } from "../constants/addresses";
+import { FacetTransactionParams, L1Transaction } from "../types";
 import { createFacetPublicClient } from "../viem/createFacetPublicClient";
 import { getFctMintRate } from "../viem/getFctMintRate";
 import { computeFacetTransactionHash } from "./computeFacetTransactionHash";
 import { prepareFacetTransaction } from "./prepareFacetTransaction";
 
-const FACET_INBOX_ADDRESS =
-  "0x00000000000000000000000000000000000FacE7" as const;
-
-interface L1Transaction {
-  account: `0x${string}`;
-  to: "0x00000000000000000000000000000000000FacE7";
-  value: bigint;
-  data: `0x${string}`;
-  gas: bigint;
-  chainId: number;
-}
-
+/**
+ * Creates a Facet transaction by preparing the transaction data and sending it to L1.
+ *
+ * @param l1ChainId - The chain ID of the L1 network (1 for mainnet, 11155111 for Sepolia)
+ * @param account - The address of the account initiating the transaction
+ * @param params - Transaction parameters including to, value, and data
+ * @param sendL1Transaction - Function to send the L1 transaction and return the transaction hash
+ * @returns Object containing the L1 transaction hash, Facet transaction hash, FCT mint amount, and FCT mint rate
+ * @throws Error if L1 chain is invalid, account is missing, or L2 chain is not configured
+ */
 export const createFacetTransaction = async (
   l1ChainId: number,
   account: Address,

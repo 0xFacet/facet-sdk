@@ -46,6 +46,7 @@
   "homepage": "https://github.com/0xFacet/facet-sdk#readme",
   "devDependencies": {
     "@types/node": "^22.8.0",
+    "@types/react": "^19.0.10",
     "@typescript-eslint/eslint-plugin": "^8.11.0",
     "@typescript-eslint/parser": "^8.11.0",
     "eslint": "^8.57.1",
@@ -63,8 +64,13 @@
     "ts-node": "^10.9.2"
   },
   "peerDependencies": {
+    "@tanstack/react-query": "^5.66.9",
+    "@wagmi/core": "^2.16.5",
+    "react": "^18.3.1",
+    "solady": "^0.1.9",
     "typescript": ">=5.0.4",
-    "viem": "2.x"
+    "viem": "^2.23.5",
+    "wagmi": "^2.14.12"
   },
   "files": [
     "dist/**/*"

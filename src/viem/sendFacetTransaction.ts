@@ -4,6 +4,14 @@ import { mainnet, sepolia } from "viem/chains";
 import { FacetTransactionParams } from "../types";
 import { createFacetTransaction } from "../utils";
 
+/**
+ * Sends a Facet transaction using a viem WalletClient
+ *
+ * @param l1WalletClient - The viem WalletClient instance used to send the transaction
+ * @param params - Parameters for the Facet transaction
+ * @returns A promise that resolves to the transaction hash
+ * @throws Error if no chain ID or connected account is available
+ */
 export const sendFacetTransaction = async (
   l1WalletClient: WalletClient,
   params: FacetTransactionParams
