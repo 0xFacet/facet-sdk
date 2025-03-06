@@ -87,7 +87,7 @@ Formats the L1 transaction that creates the Facet transaction. This function pre
 applyL1ToL2Alias(l1Address: Address): Address
 ```
 
-Converts an L1 address that submits a transaction to the Facet Inbox into its corresponding L2 address.
+Converts an L1 contract address into corresponding L2 address.
 
 #### `undoL1ToL2Alias`
 
@@ -95,7 +95,7 @@ Converts an L1 address that submits a transaction to the Facet Inbox into its co
 undoL1ToL2Alias(l2Address: Address): Address
 ```
 
-Converts an L2 address (as seen in `msg.sender`) back to its original L1 address.
+Converts an L2 address (as seen in `msg.sender`) back to its original L1 contract address.
 
 #### `calculateInputGasCost`
 
