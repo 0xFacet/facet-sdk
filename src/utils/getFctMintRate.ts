@@ -1,5 +1,5 @@
 import { L2_L1_BLOCK_CONTRACT } from "../constants/addresses";
-import { createFacetPublicClient } from "./createFacetPublicClient";
+import { createFacetPublicClient } from "../viem/createFacetPublicClient";
 
 /**
  * Retrieves the current FCT mint rate from the L1 block contract.

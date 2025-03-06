@@ -33,9 +33,9 @@ import {
 } from "../types";
 import { computeFacetTransactionHash } from "../utils";
 import { applyL1ToL2Alias } from "../utils/aliasing";
+import { getFctMintRate } from "../utils/getFctMintRate";
 import { facetMainnet, facetSepolia } from "../viem/chains";
 import { createFacetPublicClient } from "../viem/createFacetPublicClient";
-import { getFctMintRate } from "../viem/getFctMintRate";
 import { sendFacetTransaction } from "../viem/sendFacetTransaction";
 
 const TRANSACTION_DEFAULTS = {

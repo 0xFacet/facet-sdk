@@ -1,6 +1,4 @@
-import { Address, Hex, keccak256 } from "viem";
-
-import { encodeDepositTx } from "./encodeDepositTx";
+import { Address, concatHex, Hex, keccak256, toHex, toRlp } from "viem";
 
 /**
  * Computes a hash for a Facet transaction.
@@ -23,15 +21,18 @@ export const computeFacetTransactionHash = (
   gasLimit: bigint,
   mint: bigint
 ): Hex => {
-  const encodedTx = encodeDepositTx({
-    sourceHash: l1TransactionHash,
+  const serializedTransaction = [
+    l1TransactionHash,
     from,
     to,
-    mint,
-    value,
-    gasLimit,
+    mint ? toHex(mint) : "0x",
+    value ? toHex(value) : "0x",
+    gasLimit ? toHex(gasLimit) : "0x",
+    "0x",
     data,
-  });
+  ] as Hex[];
+
+  const encodedTx = concatHex(["0x7e", toRlp(serializedTransaction)]);
 
   return keccak256(encodedTx);
 };

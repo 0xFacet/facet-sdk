@@ -5,7 +5,7 @@
  * @param input - The input data as a Uint8Array
  * @returns The total gas cost as a BigInt
  */
-export const calculateInputCost = (input: Uint8Array) => {
+export const calculateInputGasCost = (input: Uint8Array) => {
   let totalGasCost = 0n;
   input.forEach((byte) => {
     totalGasCost += byte === 0 ? 4n : 16n;

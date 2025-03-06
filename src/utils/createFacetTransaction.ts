@@ -1,12 +1,22 @@
-import { Address, createPublicClient, Hex, http, maxUint256 } from "viem";
+import {
+  Address,
+  concatHex,
+  createPublicClient,
+  Hex,
+  http,
+  maxUint256,
+  toBytes,
+  toHex,
+  toRlp,
+} from "viem";
 import { mainnet, sepolia } from "viem/chains";
 
 import { FACET_INBOX_ADDRESS } from "../constants/addresses";
 import { FacetTransactionParams, L1Transaction } from "../types";
 import { createFacetPublicClient } from "../viem/createFacetPublicClient";
-import { getFctMintRate } from "../viem/getFctMintRate";
+import { calculateInputGasCost } from "./calculateInputGasCost";
 import { computeFacetTransactionHash } from "./computeFacetTransactionHash";
-import { prepareFacetTransaction } from "./prepareFacetTransaction";
+import { getFctMintRate } from "./getFctMintRate";
 
 /**
  * Creates a Facet transaction by preparing the transaction data and sending it to L1.
@@ -54,11 +64,19 @@ export const createFacetTransaction = async (
 
   const gasLimit = estimateGasRes;
 
-  const { encodedTransaction, fctMintAmount } = await prepareFacetTransaction(
-    facetPublicClient.chain.id,
-    fctMintRate,
-    { ...params, gasLimit }
-  );
+  const transactionData = [
+    toHex(facetPublicClient.chain.id),
+    params.to ?? "0x",
+    params.value ? toHex(params.value) : "0x",
+    gasLimit ? toHex(gasLimit) : "0x",
+    params.data ?? "0x",
+    params.mineBoost ?? "0x",
+  ];
+
+  const encodedTransaction = concatHex([toHex(70), toRlp(transactionData)]);
+
+  const inputCost = calculateInputGasCost(toBytes(encodedTransaction));
+  const fctMintAmount = inputCost * fctMintRate;
 
   // Call estimateGas again but with an accurate future balance
   // This will allow it to correctly revert when necessary
