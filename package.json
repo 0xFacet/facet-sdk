@@ -1,6 +1,6 @@
 {
   "name": "@0xfacet/sdk",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "private": false,
   "description": "A toolkit for Facet blockchain integration.",
   "main": "dist/cjs/index.js",
@@ -12,6 +12,16 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js",
       "types": "./dist/types/index.d.ts"
+    },
+    "./constants": {
+      "import": "./dist/esm/constants/index.js",
+      "require": "./dist/cjs/constants/index.js",
+      "types": "./dist/types/constants/index.d.ts"
+    },
+    "./hooks": {
+      "import": "./dist/esm/hooks/index.js",
+      "require": "./dist/cjs/hooks/index.js",
+      "types": "./dist/types/hooks/index.d.ts"
     },
     "./utils": {
       "import": "./dist/esm/utils/index.js",

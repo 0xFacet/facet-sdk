@@ -34,7 +34,7 @@ import React from "react";
 import { useFacet, facetMainnet } from "@0xfacet/sdk";
 
 function BalanceChecker() {
-  // Initialize the Facet hook with transaction status updates
+  // Initialize the Facet hook with optional transaction status updates
   const { writeFacetContract } = useFacet({
     onTransaction: (status) => {
       console.log(`Transaction ${status.hash} status: ${status.status}`);
@@ -116,8 +116,8 @@ A React hook for interacting with the Facet network.
 **Parameters:**
 
 - `config` (optional): Configuration object with the following properties:
-  - `contractAddresses`: Custom contract addresses to use instead of the default ones
-  - `onTransaction`: Callback function that receives transaction status updates
+  - `contractAddresses` (optional): Custom contract addresses to use instead of the default ones
+  - `onTransaction` (optional): Callback function that receives transaction status updates
 
 **Returns:**
 

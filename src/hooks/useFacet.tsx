@@ -5,6 +5,7 @@ import type {
   AbiFunction,
   AbiParameter,
   AbiStateMutability,
+  Address,
   Hex,
   PublicClient,
   TransactionReceipt,
@@ -24,13 +25,7 @@ import { useAccount, useConfig } from "wagmi";
 
 import { etherBridgeAbi, facetEtherBridgeMintableAbi } from "../constants/abi";
 import { CONTRACT_ADDRESSES } from "../constants/addresses";
-import {
-  FacetHookConfig,
-  FacetHookReturn,
-  FacetTransactionParams,
-  FacetTransactionStatus,
-  WriteParams,
-} from "../types";
+import { FacetTransactionParams } from "../types";
 import { buildFacetTransaction, computeFacetTransactionHash } from "../utils";
 import { applyL1ToL2Alias } from "../utils/aliasing";
 import { getFctMintRate } from "../utils/getFctMintRate";
@@ -41,6 +36,49 @@ const TRANSACTION_DEFAULTS = {
   timeout: 60_000,
   gasLimitMultiplier: 1.1,
 } as const;
+
+type FacetTransactionStatus =
+  | { status: "pending"; hash: string; explorerUrl?: string }
+  | {
+      status: "success";
+      hash: string;
+      explorerUrl?: string;
+      receipt: TransactionReceipt;
+    }
+  | { status: "error"; hash: string; explorerUrl?: string; error: Error };
+
+interface WriteParams {
+  address: Address;
+  functionAbi: AbiFunction;
+  args?: readonly unknown[] | undefined;
+  ethValue?: bigint;
+}
+
+interface FacetHookConfig {
+  /** Called when transaction status changes */
+  onTransaction?: (params: FacetTransactionStatus) => void;
+  /** Override default contract addresses */
+  contractAddresses?: Partial<typeof CONTRACT_ADDRESSES>;
+}
+
+interface FacetHookReturn {
+  /** Bridges ETH from L1 to L2 and executes a call on L2 */
+  sendBridgeAndCallTransaction: (
+    transaction: FacetTransactionParams,
+    ethValue: bigint
+  ) => Promise<TransactionReceipt>;
+  /** Sends a transaction through the Buddy Factory contract */
+  sendFacetBuddyTransaction: (
+    transaction: FacetTransactionParams,
+    ethValue: bigint
+  ) => Promise<TransactionReceipt>;
+  /** Sends a transaction to the Facet network */
+  sendFacetTransaction: (
+    transaction: FacetTransactionParams
+  ) => Promise<TransactionReceipt>;
+  /** Executes a write function on a contract on the Facet network */
+  writeFacetContract: (params: WriteParams) => Promise<TransactionReceipt>;
+}
 
 /**
  * Creates an ABI function definition with the specified parameters

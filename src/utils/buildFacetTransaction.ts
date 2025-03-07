@@ -12,11 +12,20 @@ import {
 import { mainnet, sepolia } from "viem/chains";
 
 import { FACET_INBOX_ADDRESS } from "../constants/addresses";
-import { FacetTransactionParams, L1Transaction } from "../types";
+import { FacetTransactionParams } from "../types";
 import { facetMainnet, facetSepolia } from "../viem";
 import { calculateInputGasCost } from "./calculateInputGasCost";
 import { computeFacetTransactionHash } from "./computeFacetTransactionHash";
 import { getFctMintRate } from "./getFctMintRate";
+
+interface L1Transaction {
+  account: Address;
+  to: "0x00000000000000000000000000000000000FacE7";
+  value: bigint;
+  data: Hex;
+  gas: bigint;
+  chainId: number;
+}
 
 /**
  * Builds a Facet transaction by preparing the transaction data and sending it to L1.
