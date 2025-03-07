@@ -34,7 +34,18 @@ import React from "react";
 import { useFacet, facetMainnet } from "@0xfacet/sdk";
 
 function BalanceChecker() {
-  const { writeFacetContract } = useFacet();
+  // Initialize the Facet hook with transaction status updates
+  const { writeFacetContract } = useFacet({
+    onTransaction: (status) => {
+      console.log(`Transaction ${status.hash} status: ${status.status}`);
+
+      if (status.status === "success") {
+        console.log("Receipt:", status.receipt);
+      } else if (status.status === "error") {
+        console.error("Error:", status.error);
+      }
+    }
+  });
 
   // Simple read example
   const checkBalance = async () => {
