@@ -94,7 +94,11 @@ export default BalanceChecker;
 
 ### Hooks (`hooks`)
 
-#### `useFacet(config?: FacetHookConfig)`
+#### `useFacet`
+
+```typescript
+useFacet(config?: FacetHookConfig): FacetHookReturn
+```
 
 A React hook for interacting with the Facet network.
 
@@ -111,7 +115,11 @@ A React hook for interacting with the Facet network.
 - `sendFacetBuddyTransaction`: Sends a transaction through the Buddy Factory contract
 - `writeFacetContract`: Executes a write function on a contract on the Facet network
 
-#### `sendFacetTransaction(transaction: FacetTransactionParams)`
+#### `sendFacetTransaction`
+
+```typescript
+sendFacetTransaction(transaction: FacetTransactionParams)
+```
 
 Sends a transaction to the Facet network.
 
@@ -125,7 +133,11 @@ Sends a transaction to the Facet network.
 
 - Promise that resolves to transaction receipt
 
-#### `sendBridgeAndCallTransaction(transaction: FacetTransactionParams, ethValue: bigint)`
+#### `sendBridgeAndCallTransaction`
+
+```typescript
+sendBridgeAndCallTransaction(transaction: FacetTransactionParams, ethValue: bigint)
+```
 
 Bridges ETH from L1 to L2 and executes a call on L2.
 
@@ -138,7 +150,11 @@ Bridges ETH from L1 to L2 and executes a call on L2.
 
 - Promise that resolves to transaction receipt
 
-#### `sendFacetBuddyTransaction(transaction: FacetTransactionParams, ethValue: bigint)`
+#### `sendFacetBuddyTransaction`
+
+```typescript
+sendFacetBuddyTransaction(transaction: FacetTransactionParams, ethValue: bigint)
+```
 
 Sends a transaction through the Buddy Factory contract.
 
@@ -151,7 +167,11 @@ Sends a transaction through the Buddy Factory contract.
 
 - Promise that resolves to transaction receipt
 
-#### `writeFacetContract({ address, functionAbi, args, ethValue }: WriteParams)`
+#### `writeFacetContract`
+
+```typescript
+writeFacetContract({ address, functionAbi, args, ethValue }: WriteParams)
+```
 
 Executes a write function on a contract on the Facet network.
 
