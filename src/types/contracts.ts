@@ -1,16 +1,10 @@
 import { AbiFunction, Address } from "viem";
 
 export interface WriteParams {
-  to: Address;
+  address: Address;
   functionAbi: AbiFunction;
   args?: readonly unknown[] | undefined;
   ethValue?: bigint;
-}
-
-export interface ReadParams {
-  to: Address;
-  functionAbi: AbiFunction;
-  args?: readonly unknown[] | undefined;
 }
 
 export interface ContractAddresses {

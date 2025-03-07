@@ -30,48 +30,148 @@ yarn add @0xfacet/sdk
 Import and initialize the SDK functions as needed:
 
 ```typescript
-import { useFacet } from "@0xfacet/sdk";
+import React from "react";
+import { useFacet, facetMainnet } from "@0xfacet/sdk";
 
-const { sendFacetMethodWrite, sendFacetMethodRead } = useFacet();
+function BalanceChecker() {
+  const { writeFacetContract } = useFacet();
 
-async function interactWithContract() {
-  const result = await sendFacetMethodRead({
-    to: "0xContractAddress",
-    functionAbi: {
-      name: "getBalance",
-      type: "function",
-      inputs: [{ name: "address", type: "address" }],
-      outputs: [{ name: "balance", type: "uint256" }],
-      stateMutability: "view",
-    },
-    args: ["0xUserAddress"],
-  });
+  // Simple read example
+  const checkBalance = async () => {
+    try {
+      // For read operations, you'd typically use a viem publicClient
+      const publicClient = createPublicClient({
+        chain: facetMainnet,
+        transport: http()
+      });
 
-  console.log("Balance:", result);
+      const balance = await publicClient.readContract({
+        address: "0xContractAddress",
+        abi: [...],
+        functionName: "getBalance",
+        args: ["0xUserAddress"]
+      });
+
+      console.log("Balance:", balance);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  // Simple write example
+  const updateValue = async () => {
+    try {
+      const receipt = await writeFacetContract({
+        address: "0xContractAddress",
+        functionAbi: {
+          name: "setValue",
+          type: "function",
+          inputs: [{ name: "newValue", type: "uint256" }],
+          outputs: [],
+          stateMutability: "nonpayable"
+        },
+        args: [123]
+      });
+
+      console.log("Success:", receipt);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={checkBalance}>Check Balance</button>
+      <button onClick={updateValue}>Update Value</button>
+    </div>
+  );
 }
+
+export default BalanceChecker;
 ```
 
 ## API Reference
 
 ### Hooks (`hooks`)
 
-#### `useFacet(config?: FacetConfig): FacetResult`
+#### `useFacet(config?: FacetHookConfig)`
 
 A React hook for interacting with the Facet network.
 
+**Parameters:**
+
+- `config` (optional): Configuration object with the following properties:
+  - `contractAddresses`: Custom contract addresses to use instead of the default ones
+  - `onTransaction`: Callback function that receives transaction status updates
+
 **Returns:**
 
-- `sendFacetMethodWrite`: Executes a write operation on Facet.
-- `sendFacetMethodRead`: Reads data from a contract on Facet.
-- `simulateFacetMethodWrite`: Simulates a contract call.
-- `sendRawFacetTransaction`: Sends a raw transaction to Facet.
+- `sendFacetTransaction`: Sends a transaction to the Facet network
+- `sendBridgeAndCallTransaction`: Bridges ETH from L1 to L2 and executes a call on L2
+- `sendFacetBuddyTransaction`: Sends a transaction through the Buddy Factory contract
+- `writeFacetContract`: Executes a write function on a contract on the Facet network
+
+#### `sendFacetTransaction(transaction: FacetTransactionParams)`
+
+Sends a transaction to the Facet network.
+
+**Parameters:**
+
+- `transaction`: Object containing:
+  - `to`: Contract address to call
+  - `data`: Encoded function data
+
+**Returns:**
+
+- Promise that resolves to transaction receipt
+
+#### `sendBridgeAndCallTransaction(transaction: FacetTransactionParams, ethValue: bigint)`
+
+Bridges ETH from L1 to L2 and executes a call on L2.
+
+**Parameters:**
+
+- `transaction`: Object containing transaction parameters
+- `ethValue`: Amount of ETH to bridge (in wei)
+
+**Returns:**
+
+- Promise that resolves to transaction receipt
+
+#### `sendFacetBuddyTransaction(transaction: FacetTransactionParams, ethValue: bigint)`
+
+Sends a transaction through the Buddy Factory contract.
+
+**Parameters:**
+
+- `transaction`: Object containing transaction parameters
+- `ethValue`: Amount of ETH to use in the transaction
+
+**Returns:**
+
+- Promise that resolves to transaction receipt
+
+#### `writeFacetContract({ address, functionAbi, args, ethValue }: WriteParams)`
+
+Executes a write function on a contract on the Facet network.
+
+**Parameters:**
+
+- `address`: Contract address
+- `functionAbi`: ABI of the function to call
+- `args`: Arguments to pass to the function (optional)
+- `ethValue`: ETH value to send with the transaction (optional)
+
+**Returns:**
+
+- Promise that resolves to transaction receipt
 
 ### Utilities (`utils`)
 
-#### `createFacetTransaction`
+#### `buildFacetTransaction`
 
 ```typescript
-createFacetTransaction(
+buildFacetTransaction(
   l1ChainId: number,
   account: Address,
   params: FacetTransactionParams,
@@ -80,22 +180,6 @@ createFacetTransaction(
 ```
 
 Formats the L1 transaction that creates the Facet transaction. This function prepares the necessary data so that developers can then send the transaction using a library like viem.
-
-#### `applyL1ToL2Alias`
-
-```typescript
-applyL1ToL2Alias(l1Address: Address): Address
-```
-
-Converts an L1 contract address into corresponding L2 address.
-
-#### `undoL1ToL2Alias`
-
-```typescript
-undoL1ToL2Alias(l2Address: Address): Address
-```
-
-Converts an L2 address (as seen in `msg.sender`) back to its original L1 contract address.
 
 #### `calculateInputGasCost`
 
@@ -145,15 +229,23 @@ getFctMintRate(l1ChainId: 1 | 11155111): Promise<bigint>
 
 Retrieves the current FCT mint rate from the L1 block contract.
 
-### Viem (`viem`)
-
-#### `createFacetPublicClient`
+#### `applyL1ToL2Alias`
 
 ```typescript
-createFacetPublicClient(l1ChainId: 1 | 11155111, transport?: HttpTransport): FacetPublicClient
+applyL1ToL2Alias(l1Address: Address): Address
 ```
 
-Creates a public client configured for the Facet network.
+Converts an L1 contract address into corresponding L2 address.
+
+#### `undoL1ToL2Alias`
+
+```typescript
+undoL1ToL2Alias(l2Address: Address): Address
+```
+
+Converts an L2 address (as seen in `msg.sender`) back to its original L1 contract address.
+
+### Viem (`viem`)
 
 #### `walletL1FacetActions`
 

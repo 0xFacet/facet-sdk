@@ -11,8 +11,9 @@ import type {
 } from "viem";
 import {
   concatHex,
+  createPublicClient,
   encodeFunctionData,
-  getAddress,
+  http,
   maxUint256,
   toBytes,
   toHex,
@@ -24,19 +25,16 @@ import { useAccount, useConfig } from "wagmi";
 import { etherBridgeAbi, facetEtherBridgeMintableAbi } from "../constants/abi";
 import { CONTRACT_ADDRESSES } from "../constants/addresses";
 import {
-  FacetConfig,
-  FacetResult,
+  FacetHookConfig,
+  FacetHookReturn,
   FacetTransactionParams,
   FacetTransactionStatus,
-  ReadParams,
   WriteParams,
 } from "../types";
-import { computeFacetTransactionHash } from "../utils";
+import { buildFacetTransaction, computeFacetTransactionHash } from "../utils";
 import { applyL1ToL2Alias } from "../utils/aliasing";
 import { getFctMintRate } from "../utils/getFctMintRate";
 import { facetMainnet, facetSepolia } from "../viem/chains";
-import { createFacetPublicClient } from "../viem/createFacetPublicClient";
-import { sendFacetTransaction } from "../viem/sendFacetTransaction";
 
 const TRANSACTION_DEFAULTS = {
   pollingInterval: 12_000,
@@ -69,15 +67,15 @@ export const createFunctionAbi = (
 
 /**
  * Hook for interacting with the Facet network
- * @param {FacetConfig} [config] - Optional configuration for the Facet hook
- * @returns {FacetResult} Object containing functions to interact with the Facet network
+ * @param {FacetHookConfig} [config] - Optional configuration for the Facet hook
+ * @returns {FacetHookReturn} Object containing functions to interact with the Facet network
  */
-export function useFacet(config?: FacetConfig): FacetResult {
-  const { address, isDisconnected, chain, connector } = useAccount();
+export function useFacet(config?: FacetHookConfig): FacetHookReturn {
+  const account = useAccount();
   const wagmiConfig = useConfig();
 
   const { l1Network, l2Network } = useMemo(() => {
-    switch (chain?.id) {
+    switch (account.chain?.id) {
       case mainnet.id:
       case facetMainnet.id:
         return { l1Network: mainnet, l2Network: facetMainnet };
@@ -87,7 +85,7 @@ export function useFacet(config?: FacetConfig): FacetResult {
       default:
         return { l1Network: undefined, l2Network: undefined };
     }
-  }, [chain]);
+  }, [account.chain]);
 
   const { l1Contracts, l2Contracts } = useMemo(() => {
     if (!l1Network) {
@@ -110,7 +108,15 @@ export function useFacet(config?: FacetConfig): FacetResult {
 
   const facetPublicClient = useMemo(() => {
     if (!l1Network) return undefined;
-    return createFacetPublicClient(l1Network.id) as PublicClient;
+
+    if (l1Network.id !== 1 && l1Network.id !== 11155111) {
+      throw new Error("Invalid chain id");
+    }
+
+    return createPublicClient({
+      chain: l1Network.id === 1 ? facetMainnet : facetSepolia,
+      transport: http(),
+    }) as PublicClient;
   }, [l1Network]);
 
   /**
@@ -163,56 +169,30 @@ export function useFacet(config?: FacetConfig): FacetResult {
   );
 
   /**
-   * Performs a read operation on the Facet network
-   * @template T - The return type of the read operation
-   * @param {ReadParams & { blockNumber?: bigint }} params - Parameters for the read operation
-   * @param {string} params.to - The address of the contract to read from
-   * @param {AbiFunction} params.functionAbi - The ABI of the function to call
-   * @param {any[]} [params.args] - Arguments to pass to the function
-   * @param {bigint} [params.blockNumber] - Optional block number to read from
-   * @returns {Promise<T>} The result of the read operation
-   * @throws {Error} If the network is unsupported or the connection is invalid
-   */
-  const sendFacetMethodRead = useCallback(
-    async function sendFacetMethodRead<T = any>({
-      to,
-      functionAbi,
-      args = [],
-      blockNumber,
-    }: ReadParams & { blockNumber?: bigint }): Promise<T> {
-      if (!l2Network || !l1Network) throw new Error("Unsupported network");
-      if (chain?.id !== l1Network.id) throw new Error("Wrong network");
-      if (!facetPublicClient) throw new Error("Facet network not found");
-
-      return facetPublicClient.readContract({
-        abi: [functionAbi],
-        address: getAddress(to),
-        functionName: functionAbi.name,
-        args,
-        blockNumber,
-      }) as Promise<T>;
-    },
-    [chain?.id, facetPublicClient, l1Network, l2Network]
-  );
-
-  /**
-   * Sends a raw transaction to the Facet network
+   * Sends a transaction to the Facet network
    * @param {FacetTransactionParams} transaction - The transaction parameters
    * @returns {Promise<TransactionReceipt>} The transaction receipt
    * @throws {Error} If the user is not connected or the network is unsupported
    */
-  const sendRawFacetTransaction = useCallback(
+  const sendFacetTransaction = useCallback(
     async (transaction: FacetTransactionParams) => {
-      if (!address || isDisconnected) throw new Error("Not connected");
+      if (!account.address || account.isDisconnected)
+        throw new Error("Not connected");
       if (!l2Network || !l1Network) throw new Error("Unsupported network");
-      if (chain?.id !== l1Network.id) throw new Error("Wrong network");
+      if (account.chain?.id !== l1Network.id) throw new Error("Wrong network");
       if (!facetPublicClient) throw new Error("Facet network not found");
 
       const l1WalletClient = await getWalletClient(wagmiConfig);
 
-      const { facetTransactionHash } = await sendFacetTransaction(
-        l1WalletClient,
-        transaction
+      const { facetTransactionHash } = await buildFacetTransaction(
+        l1WalletClient.chain.id,
+        l1WalletClient.account.address,
+        transaction,
+        (l1Transaction) =>
+          l1WalletClient.sendTransaction({
+            ...l1Transaction,
+            chain: l1Transaction.chainId === 1 ? mainnet : sepolia,
+          })
       );
 
       updateTransactionStatus(facetTransactionHash, "pending");
@@ -236,11 +216,11 @@ export function useFacet(config?: FacetConfig): FacetResult {
       return l2TransactionReceipt;
     },
     [
-      address,
-      isDisconnected,
+      account.address,
+      account.isDisconnected,
       l2Network,
       l1Network,
-      chain?.id,
+      account.chain?.id,
       facetPublicClient,
       wagmiConfig,
       updateTransactionStatus,
@@ -257,9 +237,10 @@ export function useFacet(config?: FacetConfig): FacetResult {
   const sendBridgeAndCallTransaction = React.useCallback(
     async (_transaction: FacetTransactionParams, ethValue: bigint) => {
       const transaction = _transaction;
-      if (!address || isDisconnected) throw new Error("Not connected");
+      if (!account.address || account.isDisconnected)
+        throw new Error("Not connected");
       if (!l2Network || !l1Network) throw new Error("Unsupported network");
-      if (chain?.id !== l1Network.id) throw new Error("Wrong network");
+      if (account.chain?.id !== l1Network.id) throw new Error("Wrong network");
       if (!facetPublicClient) throw new Error("Facet network not found");
       if (!l1Contracts || !l2Contracts)
         throw new Error("Contract addresses not available");
@@ -304,7 +285,7 @@ export function useFacet(config?: FacetConfig): FacetResult {
           ),
         ],
         functionName: "bridgeAndCall",
-        args: [address, ethValue, transaction.to, transaction.data],
+        args: [account.address, ethValue, transaction.to, transaction.data],
       });
 
       const simulationTxn = await (facetPublicClient as any).request({
@@ -349,7 +330,7 @@ export function useFacet(config?: FacetConfig): FacetResult {
       let estimatedGas: bigint | undefined;
 
       // There is a bug in Coinbase Wallet with estimating gas
-      if (connector?.id !== "coinbaseWalletSDK") {
+      if (account.connector?.id !== "coinbaseWalletSDK") {
         const l1PublicClient = getPublicClient(wagmiConfig, {
           chainId: l1Network?.id,
         });
@@ -361,11 +342,11 @@ export function useFacet(config?: FacetConfig): FacetResult {
         }
 
         estimatedGas = await l1PublicClient.estimateContractGas({
-          account: address,
+          account: account.address,
           address: l1Contracts.ETHER_BRIDGE_CONTRACT,
           abi: etherBridgeAbi,
           functionName: "bridgeAndCall",
-          args: [address, transaction.to, transaction.data, gasLimit],
+          args: [account.address, transaction.to, transaction.data, gasLimit],
           value: ethValue,
         });
 
@@ -380,7 +361,7 @@ export function useFacet(config?: FacetConfig): FacetResult {
         address: l1Contracts.ETHER_BRIDGE_CONTRACT,
         abi: etherBridgeAbi,
         functionName: "bridgeAndCall",
-        args: [address, transaction.to, transaction.data, gasLimit],
+        args: [account.address, transaction.to, transaction.data, gasLimit],
         value: ethValue,
         gas: estimatedGas,
       });
@@ -416,16 +397,16 @@ export function useFacet(config?: FacetConfig): FacetResult {
       return l2TransactionReceipt;
     },
     [
-      address,
-      isDisconnected,
+      account.address,
+      account.isDisconnected,
       l2Network,
       l1Network,
-      chain?.id,
+      account.chain?.id,
       facetPublicClient,
       l1Contracts,
       l2Contracts,
       wagmiConfig,
-      connector?.id,
+      account.connector?.id,
       updateTransactionStatus,
     ]
   );
@@ -454,16 +435,16 @@ export function useFacet(config?: FacetConfig): FacetResult {
         args: [ethValue, transaction.to, transaction.data],
       });
 
-      return sendRawFacetTransaction({
+      return sendFacetTransaction({
         to: l2Contracts.BUDDY_FACTORY_CONTRACT,
         data: encodedFunctionData,
       });
     },
-    [l2Contracts, sendRawFacetTransaction]
+    [l2Contracts, sendFacetTransaction]
   );
 
   /**
-   * Executes a write operation on the Facet network
+   * Executes a write function on a contract on the Facet network
    * @param {WriteParams} params - Parameters for the write operation
    * @param {string} params.to - The address of the contract to write to
    * @param {AbiFunction} params.functionAbi - The ABI of the function to call
@@ -472,8 +453,8 @@ export function useFacet(config?: FacetConfig): FacetResult {
    * @returns {Promise<TransactionReceipt>} The transaction receipt
    * @throws {Error} If contract addresses are not available
    */
-  const sendFacetMethodWrite = React.useCallback(
-    async ({ to, functionAbi, args = [], ethValue }: WriteParams) => {
+  const writeFacetContract = React.useCallback(
+    async ({ address, functionAbi, args = [], ethValue }: WriteParams) => {
       if (!l2Contracts) throw new Error("Contract addresses not available");
 
       const encodedFunctionData = encodeFunctionData({
@@ -482,19 +463,18 @@ export function useFacet(config?: FacetConfig): FacetResult {
         args,
       });
 
-      const l2WethBalance = await sendFacetMethodRead<bigint>({
-        to: l2Contracts.WETH_CONTRACT,
-        functionAbi: facetEtherBridgeMintableAbi.find(
-          (abi) => abi.name === "balanceOf"
-        ) as AbiFunction,
-        args: [address],
-      });
+      const l2WethBalance = (await facetPublicClient?.readContract({
+        address: l2Contracts.WETH_CONTRACT,
+        abi: facetEtherBridgeMintableAbi,
+        functionName: "balanceOf",
+        args: [account.address],
+      })) as bigint;
 
       if (ethValue) {
         if (ethValue > BigInt(l2WethBalance ?? 0)) {
           return sendBridgeAndCallTransaction(
             {
-              to: getAddress(to),
+              to: address,
               data: encodedFunctionData,
             },
             ethValue
@@ -502,73 +482,31 @@ export function useFacet(config?: FacetConfig): FacetResult {
         }
         return sendFacetBuddyTransaction(
           {
-            to: getAddress(to),
+            to: address,
             data: encodedFunctionData,
           },
           ethValue
         );
       }
-      return sendRawFacetTransaction({
-        to: getAddress(to),
+      return sendFacetTransaction({
+        to: address,
         data: encodedFunctionData,
       });
     },
     [
       l2Contracts,
-      sendFacetMethodRead,
-      address,
-      sendRawFacetTransaction,
+      facetPublicClient,
+      account.address,
+      sendFacetTransaction,
       sendFacetBuddyTransaction,
       sendBridgeAndCallTransaction,
     ]
   );
 
-  /**
-   * Simulates a write operation on the Facet network without executing it
-   * @template T - The return type of the simulation
-   * @param {WriteParams & { blockNumber?: bigint }} params - Parameters for the simulation
-   * @param {string} params.to - The address of the contract to simulate against
-   * @param {AbiFunction} params.functionAbi - The ABI of the function to simulate
-   * @param {any[]} [params.args] - Arguments to pass to the function
-   * @param {bigint} [params.blockNumber] - Optional block number to simulate at
-   * @returns {Promise<T>} The result of the simulation
-   * @throws {Error} If the user is not connected or the network is unsupported
-   */
-  const simulateFacetMethodWrite = React.useCallback(
-    async function simulateFacetMethodWrite<T = any>({
-      to,
-      functionAbi,
-      args = [],
-      blockNumber,
-    }: WriteParams & { blockNumber?: bigint }): Promise<T> {
-      if (!address || isDisconnected) throw new Error("Not connected");
-      if (!l2Network || !l1Network) throw new Error("Unsupported network");
-      if (chain?.id !== l1Network.id) throw new Error("Wrong network");
-      if (!facetPublicClient) throw new Error("Facet network not found");
-
-      return facetPublicClient.simulateContract({
-        account: address,
-        abi: [functionAbi],
-        address: to,
-        functionName: functionAbi.name,
-        args,
-        blockNumber,
-      }) as Promise<T>;
-    },
-    [
-      address,
-      chain?.id,
-      facetPublicClient,
-      isDisconnected,
-      l1Network,
-      l2Network,
-    ]
-  );
-
   return {
-    sendRawFacetTransaction,
-    sendFacetMethodWrite,
-    sendFacetMethodRead,
-    simulateFacetMethodWrite,
+    sendBridgeAndCallTransaction,
+    sendFacetBuddyTransaction,
+    sendFacetTransaction,
+    writeFacetContract,
   };
 }

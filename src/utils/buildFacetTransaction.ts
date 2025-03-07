@@ -13,13 +13,13 @@ import { mainnet, sepolia } from "viem/chains";
 
 import { FACET_INBOX_ADDRESS } from "../constants/addresses";
 import { FacetTransactionParams, L1Transaction } from "../types";
-import { createFacetPublicClient } from "../viem/createFacetPublicClient";
+import { facetMainnet, facetSepolia } from "../viem";
 import { calculateInputGasCost } from "./calculateInputGasCost";
 import { computeFacetTransactionHash } from "./computeFacetTransactionHash";
 import { getFctMintRate } from "./getFctMintRate";
 
 /**
- * Creates a Facet transaction by preparing the transaction data and sending it to L1.
+ * Builds a Facet transaction by preparing the transaction data and sending it to L1.
  *
  * @param l1ChainId - The chain ID of the L1 network (1 for mainnet, 11155111 for Sepolia)
  * @param account - The address of the account initiating the transaction
@@ -28,7 +28,7 @@ import { getFctMintRate } from "./getFctMintRate";
  * @returns Object containing the L1 transaction hash, Facet transaction hash, FCT mint amount, and FCT mint rate
  * @throws Error if L1 chain is invalid, account is missing, or L2 chain is not configured
  */
-export const createFacetTransaction = async (
+export const buildFacetTransaction = async (
   l1ChainId: number,
   account: Address,
   params: FacetTransactionParams,
@@ -42,7 +42,10 @@ export const createFacetTransaction = async (
     throw new Error("No account");
   }
 
-  const facetPublicClient = createFacetPublicClient(l1ChainId);
+  const facetPublicClient = createPublicClient({
+    chain: l1ChainId === 1 ? facetMainnet : facetSepolia,
+    transport: http(),
+  });
 
   if (!facetPublicClient.chain) {
     throw new Error("L2 chain not configured");

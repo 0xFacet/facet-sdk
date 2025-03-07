@@ -1,5 +1,7 @@
+import { createPublicClient, http } from "viem";
+
 import { L2_L1_BLOCK_CONTRACT } from "../constants/addresses";
-import { createFacetPublicClient } from "../viem/createFacetPublicClient";
+import { facetMainnet, facetSepolia } from "../viem";
 
 /**
  * Retrieves the current FCT mint rate from the L1 block contract.
@@ -8,7 +10,14 @@ import { createFacetPublicClient } from "../viem/createFacetPublicClient";
  * @returns A Promise that resolves to the current FCT mint rate as a bigint
  */
 export const getFctMintRate = async (l1ChainId: 1 | 11155111) => {
-  const facetPublicClient = createFacetPublicClient(l1ChainId);
+  if (l1ChainId !== 1 && l1ChainId !== 11155111) {
+    throw new Error("Invalid chain id");
+  }
+
+  const facetPublicClient = createPublicClient({
+    chain: l1ChainId === 1 ? facetMainnet : facetSepolia,
+    transport: http(),
+  });
 
   const fctMintRate = await facetPublicClient.readContract({
     address: L2_L1_BLOCK_CONTRACT,

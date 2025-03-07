@@ -1,31 +1,31 @@
-import { CONTRACT_ADDRESSES } from "../constants/addresses";
-import { FacetTransactionStatus } from "./transactions";
+import { TransactionReceipt } from "viem";
 
-export interface FacetConfig {
+import { CONTRACT_ADDRESSES } from "../constants/addresses";
+import { WriteParams } from "./contracts";
+import { FacetTransactionParams, FacetTransactionStatus } from "./transactions";
+
+export interface FacetHookConfig {
   /** Called when transaction status changes */
   onTransaction?: (params: FacetTransactionStatus) => void;
   /** Override default contract addresses */
   contractAddresses?: Partial<typeof CONTRACT_ADDRESSES>;
 }
 
-export interface FacetResult {
-  /** Send a read-only call to an L2 contract */
-  sendFacetMethodRead: <T>(
-    params: import("./contracts").ReadParams
-  ) => Promise<T>;
-
-  /** Send a transaction to an L2 contract */
-  sendFacetMethodWrite: (
-    params: import("./contracts").WriteParams
-  ) => Promise<import("viem").TransactionReceipt>;
-
-  /** Simulate a transaction without sending it */
-  simulateFacetMethodWrite: <T>(
-    params: import("./contracts").WriteParams
-  ) => Promise<T>;
-
-  /** Send a raw transaction to L2 */
-  sendRawFacetTransaction: (
-    params: import("./transactions").FacetTransactionParams
-  ) => Promise<import("viem").TransactionReceipt>;
+export interface FacetHookReturn {
+  /** Bridges ETH from L1 to L2 and executes a call on L2 */
+  sendBridgeAndCallTransaction: (
+    transaction: FacetTransactionParams,
+    ethValue: bigint
+  ) => Promise<TransactionReceipt>;
+  /** Sends a transaction through the Buddy Factory contract */
+  sendFacetBuddyTransaction: (
+    transaction: FacetTransactionParams,
+    ethValue: bigint
+  ) => Promise<TransactionReceipt>;
+  /** Sends a transaction to the Facet network */
+  sendFacetTransaction: (
+    transaction: FacetTransactionParams
+  ) => Promise<TransactionReceipt>;
+  /** Executes a write function on a contract on the Facet network */
+  writeFacetContract: (params: WriteParams) => Promise<TransactionReceipt>;
 }
