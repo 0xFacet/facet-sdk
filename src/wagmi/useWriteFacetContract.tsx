@@ -1,3 +1,5 @@
+"use client";
+
 import { MutationOptions, useMutation } from "@tanstack/react-query";
 import {
   Config,
@@ -53,7 +55,7 @@ async function writeFacetContract<
     });
 
   if (client.chain.id !== mainnet.id && client.chain.id !== sepolia.id) {
-    throw new Error("Connect to mainnet and sepolia");
+    throw new Error("Connect to mainnet or sepolia");
   }
 
   let request;
@@ -83,7 +85,7 @@ function writeFacetContractMutationOptions<config extends Config>(
     mutationFn(variables) {
       return writeFacetContract(config, variables);
     },
-    mutationKey: ["writeContract"],
+    mutationKey: ["writeFacetContract"],
   } as const satisfies MutationOptions<
     WriteContractData,
     WriteContractErrorType,
