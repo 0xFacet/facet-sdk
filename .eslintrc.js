@@ -35,6 +35,9 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }], // Warn for unused variables but ignore those starting with _
     "no-console": "warn", // Warn about console.logs, use error to disallow
     "import/prefer-default-export": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-use-before-define": "off",
+    "no-shadow": "off",
   },
   settings: {
     react: {

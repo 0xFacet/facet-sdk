@@ -1,5 +1,7 @@
-export { calculateInputCost } from "./calculateInputCost";
-export { computeFacetTransactionHash } from "./computeFacetTransactionHash";
-export { createFacetTransaction } from "./createFacetTransaction";
-export { encodeDepositTx } from "./encodeDepositTx";
-export { prepareFacetTransaction } from "./prepareFacetTransaction";
+export * from "./aliasing";
+export * from "./buildFacetTransaction";
+export * from "./calculateInputGasCost";
+export * from "./computeFacetTransactionHash";
+export * from "./decodeFacetEncodedTransaction";
+export * from "./getFacetTransactionHashFromL1Hash";
+export * from "./getFctMintRate";

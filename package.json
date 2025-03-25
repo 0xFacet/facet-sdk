@@ -1,6 +1,6 @@
 {
   "name": "@0xfacet/sdk",
-  "version": "0.2.5",
+  "version": "0.4.1",
   "private": false,
   "description": "A toolkit for Facet blockchain integration.",
   "main": "dist/cjs/index.js",
@@ -13,6 +13,11 @@
       "require": "./dist/cjs/index.js",
       "types": "./dist/types/index.d.ts"
     },
+    "./constants": {
+      "import": "./dist/esm/constants/index.js",
+      "require": "./dist/cjs/constants/index.js",
+      "types": "./dist/types/constants/index.d.ts"
+    },
     "./utils": {
       "import": "./dist/esm/utils/index.js",
       "require": "./dist/cjs/utils/index.js",
@@ -22,6 +27,11 @@
       "import": "./dist/esm/viem/index.js",
       "require": "./dist/cjs/viem/index.js",
       "types": "./dist/types/viem/index.d.ts"
+    },
+    "./wagmi": {
+      "import": "./dist/esm/wagmi/index.js",
+      "require": "./dist/cjs/wagmi/index.js",
+      "types": "./dist/types/wagmi/index.d.ts"
     }
   },
   "scripts": {
@@ -46,6 +56,7 @@
   "homepage": "https://github.com/0xFacet/facet-sdk#readme",
   "devDependencies": {
     "@types/node": "^22.8.0",
+    "@types/react": "^19.0.10",
     "@typescript-eslint/eslint-plugin": "^8.11.0",
     "@typescript-eslint/parser": "^8.11.0",
     "eslint": "^8.57.1",
@@ -63,8 +74,13 @@
     "ts-node": "^10.9.2"
   },
   "peerDependencies": {
+    "@tanstack/react-query": "^5.66.9",
+    "@wagmi/core": "^2.16.5",
+    "react": "^18.3.1",
+    "solady": "^0.1.9",
     "typescript": ">=5.0.4",
-    "viem": "2.x"
+    "viem": "^2.23.5",
+    "wagmi": "^2.14.12"
   },
   "files": [
     "dist/**/*"
