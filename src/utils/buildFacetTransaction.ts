@@ -20,7 +20,7 @@ import { getFctMintRate } from "./getFctMintRate";
 
 interface L1Transaction {
   account: Address;
-  to: "0x00000000000000000000000000000000000FacE7";
+  to: Address;
   value: bigint;
   data: Hex;
   gas: bigint;

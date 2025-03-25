@@ -36,6 +36,8 @@ module.exports = {
     "no-console": "warn", // Warn about console.logs, use error to disallow
     "import/prefer-default-export": "off",
     "@typescript-eslint/no-explicit-any": "off",
+    "no-use-before-define": "off",
+    "no-shadow": "off",
   },
   settings: {
     react: {

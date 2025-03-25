@@ -21,10 +21,14 @@ export const decodeFacetEncodedTransaction = async (encodedData: Hex) => {
 
   const l2ChainId = fromHex(decoded[0] as Hex, "number");
   const to = decoded[1] as Address;
-  const value = fromHex(decoded[2] as Hex, "bigint");
-  const gasLimit = fromHex(decoded[3] as Hex, "bigint");
+
+  // Handle empty hex values by defaulting to 0n
+  const value = decoded[2] === "0x" ? 0n : fromHex(decoded[2] as Hex, "bigint");
+  const gasLimit =
+    decoded[3] === "0x" ? 0n : fromHex(decoded[3] as Hex, "bigint");
   const data = decoded[4] as Hex;
-  const fctMintAmount = fromHex(decoded[5] as Hex, "bigint");
+  const fctMintAmount =
+    decoded[5] === "0x" ? 0n : fromHex(decoded[5] as Hex, "bigint");
 
   return {
     l2ChainId,
