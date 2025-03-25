@@ -1,4 +1,4 @@
-import { createPublicClient, Hex, http } from "viem";
+import { createPublicClient, getAddress, Hex, http } from "viem";
 import { mainnet, sepolia } from "viem/chains";
 
 import { FACET_INBOX_ADDRESS } from "../constants/addresses";
@@ -33,7 +33,7 @@ export const getFacetTransactionHashFromL1Hash = async (
   });
 
   // Verify this is a transaction to the Facet Inbox
-  if (l1Transaction.to !== FACET_INBOX_ADDRESS) {
+  if (l1Transaction.to && getAddress(l1Transaction.to) !== getAddress(FACET_INBOX_ADDRESS)) {
     throw new Error("Transaction is not to Facet Inbox address");
   }
 
