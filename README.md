@@ -35,14 +35,28 @@ Import and use the SDK functions as needed:
 
 ```typescript
 // For viem users
-import { sendFacetTransaction, writeFacetContract, facetMainnet } from "@0xfacet/sdk/viem";
+import {
+  sendFacetTransaction,
+  writeFacetContract,
+  bridgeAndCall,
+  facetMainnet,
+} from "@0xfacet/sdk/viem";
 import { createWalletClient, http } from "viem";
 
 // For wagmi users
-import { useSendFacetTransaction, useWriteFacetContract, useBridgeAndCall } from "@0xfacet/sdk/wagmi";
+import {
+  useSendFacetTransaction,
+  useWriteFacetContract,
+  useBridgeAndCall,
+} from "@0xfacet/sdk/wagmi";
 
 // For utility functions
-import { getFctMintRate, decodeFacetEncodedTransaction } from "@0xfacet/sdk/utils";
+import {
+  getFctMintRate,
+  decodeFacetEncodedTransaction,
+  computeFacetTransactionHash,
+  buildFacetTransaction,
+} from "@0xfacet/sdk/utils";
 ```
 
 ## API Reference
@@ -57,7 +71,7 @@ Sends a transaction through the Facet protocol.
 function sendFacetTransaction<chain, account, request, chainOverride>(
   client: Client<Transport, chain, account>,
   parameters: SendTransactionParameters<chain, account, chainOverride, request>
-): Promise<SendTransactionReturnType>
+): Promise<SendTransactionReturnType>;
 ```
 
 #### `writeFacetContract`
@@ -65,10 +79,44 @@ function sendFacetTransaction<chain, account, request, chainOverride>(
 Executes a write operation on a contract through the Facet infrastructure.
 
 ```typescript
-function writeFacetContract<chain, account, abi, functionName, args, chainOverride>(
+function writeFacetContract<
+  chain,
+  account,
+  abi,
+  functionName,
+  args,
+  chainOverride,
+>(
   client: Client<Transport, chain, account>,
-  parameters: WriteContractParameters<abi, functionName, args, chain, account, chainOverride>
-): Promise<WriteContractReturnType>
+  parameters: WriteContractParameters<
+    abi,
+    functionName,
+    args,
+    chain,
+    account,
+    chainOverride
+  >
+): Promise<WriteContractReturnType>;
+```
+
+#### `bridgeAndCall`
+
+Bridges ETH from L1 to L2 and executes a contract call in a single transaction.
+
+```typescript
+function bridgeAndCall<chain, account, abi, functionName, args, chainOverride>(
+  client: Client<Transport, chain, account>,
+  parameters: WriteContractParameters<
+    abi,
+    functionName,
+    args,
+    chain,
+    account,
+    chainOverride
+  >,
+  ethValue: bigint,
+  bridgeAndCallConfig?: BridgeAndCallConfig
+): Promise<WriteContractReturnType>;
 ```
 
 ### WAGMI Integration
@@ -80,7 +128,7 @@ React hook for sending Facet transactions.
 ```typescript
 function useSendFacetTransaction<config, context>(
   parameters?: UseSendFacetTransactionParameters<config, context>
-): UseSendFacetTransactionReturnType<config, context>
+): UseSendFacetTransactionReturnType<config, context>;
 ```
 
 #### `useWriteFacetContract`
@@ -88,11 +136,15 @@ function useSendFacetTransaction<config, context>(
 React hook for executing write operations on contracts through Facet.
 
 ```typescript
-function useWriteFacetContract<
-  abi, functionName, args, config, context
->(
-  parameters?: UseWriteFacetContractParameters<abi, functionName, args, config, context>
-): UseWriteFacetContractReturnType<abi, functionName, args, config, context>
+function useWriteFacetContract<abi, functionName, args, config, context>(
+  parameters?: UseWriteFacetContractParameters<
+    abi,
+    functionName,
+    args,
+    config,
+    context
+  >
+): UseWriteFacetContractReturnType<abi, functionName, args, config, context>;
 ```
 
 #### `useBridgeAndCall`
@@ -102,7 +154,7 @@ React hook for bridging ETH from L1 to L2 and executing a call on L2.
 ```typescript
 function useBridgeAndCall<config, context>(
   parameters?: UseBridgeAndCallParameters<config, context>
-): UseBridgeAndCallReturnType<config, context>
+): UseBridgeAndCallReturnType<config, context>;
 ```
 
 ### Utility Functions
@@ -112,7 +164,7 @@ function useBridgeAndCall<config, context>(
 Retrieves the current FCT mint rate from the L1 block contract.
 
 ```typescript
-function getFctMintRate(l1ChainId: 1 | 11155111): Promise<bigint>
+function getFctMintRate(l1ChainId: 1 | 11155111): Promise<bigint>;
 ```
 
 #### `computeFacetTransactionHash`
@@ -128,7 +180,7 @@ function computeFacetTransactionHash(
   data: Hex,
   gasLimit: bigint,
   mint: bigint
-): Hex
+): Hex;
 ```
 
 ## Examples
@@ -147,14 +199,14 @@ const account = privateKeyToAccount("0xYourPrivateKey");
 const client = createWalletClient({
   account,
   chain: mainnet,
-  transport: http()
+  transport: http(),
 });
 
 // Send a basic transaction
 const hash = await sendFacetTransaction(client, {
   to: "0xRecipientAddress",
   value: 1000000000000000000n, // 1 FCT
-  data: "0x" // Empty data for simple FCT transfer
+  data: "0x", // Empty data for simple FCT transfer
 });
 
 console.log("Transaction hash:", hash);
@@ -172,26 +224,71 @@ const account = privateKeyToAccount("0xYourPrivateKey");
 const client = createWalletClient({
   account,
   chain: mainnet,
-  transport: http()
+  transport: http(),
 });
 
 // ERC-20 token transfer example
 const hash = await writeFacetContract(client, {
   address: "0xTokenContractAddress",
-  abi: [{
-    name: "transfer",
-    type: "function",
-    inputs: [
-      { name: "recipient", type: "address" },
-      { name: "amount", type: "uint256" }
-    ],
-    outputs: [{ type: "bool" }]
-  }],
+  abi: [
+    {
+      name: "transfer",
+      type: "function",
+      inputs: [
+        { name: "recipient", type: "address" },
+        { name: "amount", type: "uint256" },
+      ],
+      outputs: [{ type: "bool" }],
+    },
+  ],
   functionName: "transfer",
-  args: ["0xRecipientAddress", 1000000000000000000n] // 1 token with 18 decimals
+  args: ["0xRecipientAddress", 1000000000000000000n], // 1 token with 18 decimals
 });
 
 console.log("Contract transaction hash:", hash);
+```
+
+#### Bridge ETH and Call a Contract
+
+```typescript
+import { createWalletClient, http, parseEther } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { mainnet } from "viem/chains";
+import { bridgeAndCall } from "@0xfacet/sdk/viem";
+
+const account = privateKeyToAccount("0xYourPrivateKey");
+const client = createWalletClient({
+  account,
+  chain: mainnet,
+  transport: http(),
+});
+
+// Bridge ETH and call a contract function
+const hash = await bridgeAndCall(
+  client,
+  {
+    address: "0xL2ContractAddress",
+    abi: [
+      {
+        name: "purchaseWithBridgedETH",
+        type: "function",
+        inputs: [{ name: "tokenId", type: "uint256" }],
+        outputs: [],
+        stateMutability: "payable",
+      },
+    ],
+    functionName: "purchaseWithBridgedETH",
+    args: [123],
+  },
+  parseEther("0.1"), // ETH value to bridge
+  {
+    // Optional config
+    maxFeePerGas: 20000000000n,
+    maxPriorityFeePerGas: 2000000000n,
+  }
+);
+
+console.log("Bridge and call transaction hash:", hash);
 ```
 
 ### Using WAGMI Hooks
@@ -204,30 +301,23 @@ import { parseEther } from "viem";
 import { useSendFacetTransaction } from "@0xfacet/sdk/wagmi";
 
 function SendTransaction() {
-  const { 
-    sendFacetTransactionAsync,
-    data 
-  } = useSendFacetTransaction();
+  const { sendFacetTransactionAsync, data } = useSendFacetTransaction();
 
   const handleSend = async () => {
     try {
       // Using the async version
       const hash = await sendFacetTransactionAsync({
         to: "0xRecipientAddress",
-        value: parseEther("0.01")
+        value: parseEther("0.01"),
       });
-      
+
       console.log("Transaction submitted:", hash);
     } catch (error) {
       console.error("Failed to send transaction:", error);
     }
   };
 
-  return (
-    <button onClick={handleSend}>
-      Send 0.01 FCT
-    </button>
-  );
+  return <button onClick={handleSend}>Send 0.01 FCT</button>;
 }
 ```
 
@@ -237,41 +327,37 @@ function SendTransaction() {
 import React from "react";
 import { useWriteFacetContract } from "@0xfacet/sdk/wagmi";
 
-const abi = [{
-  name: "mint",
-  type: "function",
-  inputs: [
-    { name: "to", type: "address" },
-    { name: "tokenId", type: "uint256" }
-  ],
-  outputs: [],
-  stateMutability: "nonpayable"
-}];
+const abi = [
+  {
+    name: "mint",
+    type: "function",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "tokenId", type: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+];
 
 function MintNFT() {
-  const { 
-    writeFacetContractAsync
-  } = useWriteFacetContract({
+  const { writeFacetContractAsync } = useWriteFacetContract({
     abi,
     address: "0xNFTContractAddress",
-    functionName: "mint"
+    functionName: "mint",
   });
 
   const handleMint = async () => {
     try {
       await writeFacetContractAsync({
-        args: ["0xYourAddress", 123n]
+        args: ["0xYourAddress", 123n],
       });
     } catch (error) {
       console.error("Mint failed:", error);
     }
   };
 
-  return (
-    <button onClick={handleMint}>
-      Mint NFT
-    </button>
-  );
+  return <button onClick={handleMint}>Mint NFT</button>;
 }
 ```
 
@@ -283,23 +369,27 @@ import { parseEther } from "viem";
 import { useBridgeAndCall } from "@0xfacet/sdk/wagmi";
 
 function BridgeAndMint() {
-  const { 
-    bridgeAndCall 
-  } = useBridgeAndCall();
+  const { bridgeAndCall } = useBridgeAndCall();
 
   const handleBridgeAndMint = () => {
     bridgeAndCall({
-      to: "0xL2ContractAddress",
-      data: "0xMintFunctionCallData",
-      value: parseEther("0.05") // Amount to bridge from L1 to L2
+      address: "0xL2ContractAddress",
+      abi: [
+        {
+          name: "mintWithBridgedETH",
+          type: "function",
+          inputs: [{ name: "tokenId", type: "uint256" }],
+          outputs: [],
+          stateMutability: "payable",
+        },
+      ],
+      functionName: "mintWithBridgedETH",
+      args: [123],
+      ethValue: parseEther("0.1"), // Amount of ETH to bridge from L1 to L2
     });
   };
 
-  return (
-    <button onClick={handleBridgeAndMint}>
-      Bridge & Mint
-    </button>
-  );
+  return <button onClick={handleBridgeAndMint}>Bridge & Mint</button>;
 }
 ```
 
@@ -315,21 +405,23 @@ import { facetMainnet } from "@0xfacet/sdk/viem";
 
 const publicClient = createPublicClient({
   chain: facetMainnet,
-  transport: http()
+  transport: http(),
 });
 
 // Standard viem readContract works normally
 const balance = await publicClient.readContract({
   address: "0xTokenContract",
-  abi: [{
-    name: "balanceOf",
-    type: "function",
-    inputs: [{ name: "account", type: "address" }],
-    outputs: [{ type: "uint256" }],
-    stateMutability: "view"
-  }],
+  abi: [
+    {
+      name: "balanceOf",
+      type: "function",
+      inputs: [{ name: "account", type: "address" }],
+      outputs: [{ type: "uint256" }],
+      stateMutability: "view",
+    },
+  ],
   functionName: "balanceOf",
-  args: ["0xUserAddress"]
+  args: ["0xUserAddress"],
 });
 
 console.log("Balance:", balance);
@@ -344,15 +436,17 @@ import { useReadContract } from "wagmi";
 function TokenBalance() {
   const { data: balance } = useReadContract({
     address: "0xTokenContract",
-    abi: [{
-      name: "balanceOf",
-      type: "function",
-      inputs: [{ name: "account", type: "address" }],
-      outputs: [{ type: "uint256" }],
-      stateMutability: "view"
-    }],
+    abi: [
+      {
+        name: "balanceOf",
+        type: "function",
+        inputs: [{ name: "account", type: "address" }],
+        outputs: [{ type: "uint256" }],
+        stateMutability: "view",
+      },
+    ],
     functionName: "balanceOf",
-    args: ["0xUserAddress"]
+    args: ["0xUserAddress"],
   });
 
   return <div>Balance: {balance?.toString() || "Loading..."}</div>;
