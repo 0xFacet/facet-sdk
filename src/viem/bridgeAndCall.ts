@@ -228,7 +228,7 @@ export async function bridgeAndCall<
       chain: client.chain as Chain | null | undefined,
       data: l1TxnData,
       value: ethValue,
-      account: account!,
+      account: client.account ?? account!,
     });
 
     const facetTransactionHash = computeFacetTransactionHash(

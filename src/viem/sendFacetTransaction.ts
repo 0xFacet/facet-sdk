@@ -70,8 +70,9 @@ export async function sendFacetTransaction<
       },
       (l1Transaction) =>
         sendTransaction(client, {
-          chain: client.chain as Chain | null | undefined,
           ...l1Transaction,
+          chain: client.chain as Chain | null | undefined,
+          account: (client.account ?? l1Transaction.account) as Account,
         })
     );
     return facetTransactionHash;

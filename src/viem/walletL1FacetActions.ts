@@ -69,7 +69,8 @@ export const walletL1FacetActions = (l1WalletClient: WalletClient) => ({
       (l1Transaction) =>
         l1WalletClient.sendTransaction({
           ...l1Transaction,
-          chain: null, // Use null to use the client's default chain
+          chain: l1WalletClient.chain as Chain | null | undefined,
+          account: (l1WalletClient.account ?? l1Transaction.account) as Account,
         }),
       l1WalletClient.transport?.url
     );

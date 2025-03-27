@@ -110,8 +110,9 @@ export async function writeFacetContract<
       },
       (l1Transaction) =>
         sendTransaction(client, {
-          chain: request.chain,
           ...l1Transaction,
+          chain: request.chain,
+          account: (client.account ?? l1Transaction.account) as Account,
         })
     );
     return facetTransactionHash;
