@@ -28,7 +28,7 @@ interface L1Transaction {
 }
 
 /**
- * Builds a Facet transaction by preparing the transaction data and sending it to L1.
+ * Sends a raw Facet transaction by preparing the transaction data and submitting it to L1.
  *
  * @param l1ChainId - The chain ID of the L1 network (1 for mainnet, 11155111 for Sepolia)
  * @param account - The address of the account initiating the transaction
@@ -37,7 +37,7 @@ interface L1Transaction {
  * @returns Object containing the L1 transaction hash, Facet transaction hash, FCT mint amount, and FCT mint rate
  * @throws Error if L1 chain is invalid, account is missing, or L2 chain is not configured
  */
-export const buildFacetTransaction = async (
+export const sendRawFacetTransaction = async (
   l1ChainId: number,
   account: Address,
   params: FacetTransactionParams,

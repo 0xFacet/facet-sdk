@@ -4,6 +4,7 @@ import {
   Chain,
   ContractFunctionArgs,
   ContractFunctionName,
+  Hex,
   SendTransactionParameters,
   SendTransactionRequest,
   SendTransactionReturnType,
@@ -33,7 +34,7 @@ export const walletL1FacetActions = (l1WalletClient: WalletClient) => ({
       Account | undefined,
       Chain | undefined,
       SendTransactionRequest
-    >
+    > & { mineBoost?: Hex }
   ): Promise<SendTransactionReturnType> => {
     return sendFacetTransaction(l1WalletClient, parameters);
   },
@@ -61,8 +62,8 @@ export const walletL1FacetActions = (l1WalletClient: WalletClient) => ({
       Chain | undefined,
       Account | undefined,
       chainOverride
-    >
+    > & { mineBoost?: Hex }
   ): Promise<WriteContractReturnType> => {
-    return writeFacetContract(l1WalletClient, parameters);
+    return writeFacetContract(l1WalletClient, parameters as any);
   },
 });

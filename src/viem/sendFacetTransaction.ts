@@ -3,6 +3,7 @@ import {
   BaseError,
   Chain,
   Client,
+  Hex,
   SendTransactionParameters,
   SendTransactionRequest,
   SendTransactionReturnType,
@@ -11,7 +12,7 @@ import {
 import { sendTransaction } from "viem/actions";
 import { getTransactionError } from "viem/utils";
 
-import { buildFacetTransaction } from "../utils";
+import { sendRawFacetTransaction } from "../utils";
 
 /**
  * Sends a transaction through the Facet protocol.
@@ -26,6 +27,10 @@ import { buildFacetTransaction } from "../utils";
  *
  * @param client - The viem client instance used to interact with the blockchain
  * @param parameters - The transaction parameters, following viem's SendTransactionParameters format
+ * @param parameters.data - The transaction calldata
+ * @param parameters.to - The recipient address
+ * @param parameters.value - The amount of ether to send
+ * @param parameters.mineBoost - Optional hex to increase FCT mining amount
  *
  * @returns A promise that resolves to the transaction hash
  *
@@ -35,7 +40,8 @@ import { buildFacetTransaction } from "../utils";
  * const hash = await sendFacetTransaction(client, {
  *   to: '0x...',
  *   value: parseEther('0.1'),
- *   data: '0x...'
+ *   data: '0x...',
+ *   mineBoost: '0x1' // Optional: increase FCT mining amount
  * });
  */
 export async function sendFacetTransaction<
@@ -45,16 +51,22 @@ export async function sendFacetTransaction<
   chainOverride extends Chain | undefined = undefined,
 >(
   client: Client<Transport, chain, account>,
-  parameters: SendTransactionParameters<chain, account, chainOverride, request>
+  parameters: SendTransactionParameters<
+    chain,
+    account,
+    chainOverride,
+    request
+  > & { mineBoost?: Hex }
 ): Promise<SendTransactionReturnType> {
   try {
-    const { facetTransactionHash } = await buildFacetTransaction(
+    const { facetTransactionHash } = await sendRawFacetTransaction(
       client.chain!.id,
       client.account!.address,
       {
         data: parameters.data,
         to: parameters.to,
         value: parameters.value,
+        mineBoost: parameters.mineBoost,
       },
       (l1Transaction) =>
         sendTransaction(client, {
