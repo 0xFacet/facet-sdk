@@ -2,12 +2,12 @@ import {
   Account,
   BaseError,
   Chain,
+  Client,
   Hex,
   SendTransactionParameters,
   SendTransactionRequest,
   SendTransactionReturnType,
   Transport,
-  WalletClient,
 } from "viem";
 import { sendTransaction } from "viem/actions";
 import { getTransactionError, parseAccount } from "viem/utils";
@@ -50,7 +50,7 @@ export async function sendFacetTransaction<
   const request extends SendTransactionRequest<chain, chainOverride>,
   chainOverride extends Chain | undefined = undefined,
 >(
-  client: WalletClient<Transport, chain, account>,
+  client: Client<Transport, chain, account>,
   parameters: SendTransactionParameters<
     chain,
     account,
