@@ -9,6 +9,7 @@ import {
   encodeFunctionData,
   EncodeFunctionDataParameters,
   getContractError,
+  Hex,
   Transport,
   WriteContractParameters,
   WriteContractReturnType,
@@ -16,7 +17,7 @@ import {
 import { parseAccount } from "viem/accounts";
 import { sendTransaction } from "viem/actions";
 
-import { buildFacetTransaction } from "../utils";
+import { sendRawFacetTransaction } from "../utils";
 
 /**
  * Executes a write operation on a smart contract through the Facet infrastructure.
@@ -40,6 +41,7 @@ import { buildFacetTransaction } from "../utils";
  * @param {args} parameters.args - The function arguments
  * @param {string} [parameters.dataSuffix] - Optional data to append to the transaction data
  * @param {functionName} parameters.functionName - The name of the function to call
+ * @param {Hex} [parameters.mineBoost] - Optional hex value to increase FCT mining amount
  *
  * @returns {Promise<WriteContractReturnType>} The transaction hash
  *
@@ -52,6 +54,7 @@ import { buildFacetTransaction } from "../utils";
  *   abi: MyContractABI,
  *   functionName: 'setName',
  *   args: ['New Name'],
+ *   mineBoost: '0x1234' // Optional: increase FCT mining amount
  * })
  */
 export async function writeFacetContract<
@@ -74,7 +77,7 @@ export async function writeFacetContract<
     chain,
     account,
     chainOverride
-  >
+  > & { mineBoost?: Hex }
 ): Promise<WriteContractReturnType> {
   const {
     abi,
@@ -84,7 +87,7 @@ export async function writeFacetContract<
     dataSuffix,
     functionName,
     ...request
-  } = parameters as WriteContractParameters;
+  } = parameters as WriteContractParameters & { mineBoost?: Hex };
 
   if (typeof account_ === "undefined") throw new Error("No account");
   const account = account_ ? parseAccount(account_) : null;
@@ -96,18 +99,20 @@ export async function writeFacetContract<
   } as EncodeFunctionDataParameters);
 
   try {
-    const { facetTransactionHash } = await buildFacetTransaction(
+    const { facetTransactionHash } = await sendRawFacetTransaction(
       client.chain!.id,
       client.account!.address,
       {
         data: `${data}${dataSuffix ? dataSuffix.replace("0x", "") : ""}`,
         to: address,
         value: request.value,
+        mineBoost: request.mineBoost,
       },
       (l1Transaction) =>
         sendTransaction(client, {
-          chain: request.chain,
           ...l1Transaction,
+          chain: request.chain,
+          account: (client.account ?? l1Transaction.account) as Account,
         })
     );
     return facetTransactionHash;

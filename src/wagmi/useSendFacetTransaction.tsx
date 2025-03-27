@@ -8,7 +8,7 @@ import {
   SendTransactionParameters,
   SendTransactionReturnType,
 } from "@wagmi/core";
-import { Evaluate } from "viem";
+import { Evaluate, Hex } from "viem";
 import { mainnet, sepolia } from "viem/chains";
 import { Config, useConfig } from "wagmi";
 import {
@@ -22,14 +22,31 @@ import {
 
 import { sendFacetTransaction } from "../viem/sendFacetTransaction";
 
+// Define the extended variables type with mineBoost
+type SendFacetTransactionVariables<
+  config extends Config,
+  chainId extends config["chains"][number]["id"],
+> = SendTransactionVariables<config, chainId> & {
+  mineBoost?: Hex;
+};
+
 async function sendTransaction<
   config extends Config,
   chainId extends config["chains"][number]["id"],
 >(
   config: config,
-  parameters: SendTransactionParameters<config, chainId>
+  parameters: SendTransactionParameters<config, chainId> & {
+    mineBoost?: Hex;
+  }
 ): Promise<SendTransactionReturnType> {
-  const { account, chainId, connector, gas: gas_, ...rest } = parameters;
+  const {
+    account,
+    chainId,
+    connector,
+    gas: gas_,
+    mineBoost,
+    ...rest
+  } = parameters;
 
   let client;
   if (typeof account === "object" && account?.type === "local")
@@ -45,6 +62,7 @@ async function sendTransaction<
     ...(rest as any),
     ...(account ? { account } : {}),
     chain: chainId ? { id: chainId } : null,
+    mineBoost,
   });
 
   return hash;
@@ -59,7 +77,7 @@ function sendTransactionMutationOptions<config extends Config>(config: config) {
   } as const satisfies MutationOptions<
     SendTransactionData,
     SendTransactionErrorType,
-    SendTransactionVariables<config, config["chains"][number]["id"]>
+    SendFacetTransactionVariables<config, config["chains"][number]["id"]>
   >;
 }
 
@@ -76,7 +94,7 @@ type UseSendFacetTransactionParameters<
       | UseMutationParameters<
           SendTransactionData,
           SendTransactionErrorType,
-          SendTransactionVariables<config, config["chains"][number]["id"]>,
+          SendFacetTransactionVariables<config, config["chains"][number]["id"]>,
           context
         >
       | undefined;
@@ -90,7 +108,7 @@ type UseSendFacetTransactionReturnType<
   UseMutationReturnType<
     SendTransactionData,
     SendTransactionErrorType,
-    SendTransactionVariables<config, config["chains"][number]["id"]>,
+    SendFacetTransactionVariables<config, config["chains"][number]["id"]>,
     context
   > & {
     sendFacetTransaction: SendTransactionMutate<config, context>;
@@ -125,7 +143,8 @@ type UseSendFacetTransactionReturnType<
  * sendFacetTransaction({
  *   to: '0x...',
  *   value: parseEther('0.1'),
- *   data: '0x...'
+ *   data: '0x...',
+ *   mineBoost: '0x01' // Optional: increase FCT mining amount
  * });
  */
 export function useSendFacetTransaction<

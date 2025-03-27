@@ -55,7 +55,7 @@ import {
   getFctMintRate,
   decodeFacetEncodedTransaction,
   computeFacetTransactionHash,
-  buildFacetTransaction,
+  sendRawFacetTransaction,
 } from "@0xfacet/sdk/utils";
 ```
 
@@ -70,7 +70,14 @@ Sends a transaction through the Facet protocol.
 ```typescript
 function sendFacetTransaction<chain, account, request, chainOverride>(
   client: Client<Transport, chain, account>,
-  parameters: SendTransactionParameters<chain, account, chainOverride, request>
+  parameters: SendTransactionParameters<
+    chain,
+    account,
+    chainOverride,
+    request
+  > & {
+    mineBoost?: Hex; // Optional boost to increase FCT mining amount
+  }
 ): Promise<SendTransactionReturnType>;
 ```
 
@@ -95,7 +102,9 @@ function writeFacetContract<
     chain,
     account,
     chainOverride
-  >
+  > & {
+    mineBoost?: Hex; // Optional boost to increase FCT mining amount
+  }
 ): Promise<WriteContractReturnType>;
 ```
 
@@ -131,6 +140,8 @@ function useSendFacetTransaction<config, context>(
 ): UseSendFacetTransactionReturnType<config, context>;
 ```
 
+The transaction parameters can include the optional `mineBoost` property to increase the amount of FCT mined by the transaction.
+
 #### `useWriteFacetContract`
 
 React hook for executing write operations on contracts through Facet.
@@ -146,6 +157,8 @@ function useWriteFacetContract<abi, functionName, args, config, context>(
   >
 ): UseWriteFacetContractReturnType<abi, functionName, args, config, context>;
 ```
+
+The contract write parameters can include the optional `mineBoost` property to increase the amount of FCT mined by the transaction.
 
 #### `useBridgeAndCall`
 
@@ -207,6 +220,7 @@ const hash = await sendFacetTransaction(client, {
   to: "0xRecipientAddress",
   value: 1000000000000000000n, // 1 FCT
   data: "0x", // Empty data for simple FCT transfer
+  mineBoost: "0x01", // Optional: increase FCT mining amount
 });
 
 console.log("Transaction hash:", hash);
@@ -243,6 +257,7 @@ const hash = await writeFacetContract(client, {
   ],
   functionName: "transfer",
   args: ["0xRecipientAddress", 1000000000000000000n], // 1 token with 18 decimals
+  mineBoost: "0x02", // Optional: increase FCT mining amount
 });
 
 console.log("Contract transaction hash:", hash);
@@ -309,6 +324,7 @@ function SendTransaction() {
       const hash = await sendFacetTransactionAsync({
         to: "0xRecipientAddress",
         value: parseEther("0.01"),
+        mineBoost: "0x01", // Optional: increase FCT mining amount
       });
 
       console.log("Transaction submitted:", hash);
@@ -351,6 +367,7 @@ function MintNFT() {
     try {
       await writeFacetContractAsync({
         args: ["0xYourAddress", 123n],
+        mineBoost: "0x01", // Optional: increase FCT mining amount
       });
     } catch (error) {
       console.error("Mint failed:", error);

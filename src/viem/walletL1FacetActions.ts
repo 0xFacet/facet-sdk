@@ -4,6 +4,7 @@ import {
   Chain,
   ContractFunctionArgs,
   ContractFunctionName,
+  Hex,
   SendTransactionParameters,
   SendTransactionRequest,
   SendTransactionReturnType,
@@ -12,6 +13,8 @@ import {
   WriteContractReturnType,
 } from "viem";
 
+import { FacetTransactionParams } from "../types";
+import { sendRawFacetTransaction } from "../utils";
 import { sendFacetTransaction } from "./sendFacetTransaction";
 import { writeFacetContract } from "./writeFacetContract";
 
@@ -33,9 +36,44 @@ export const walletL1FacetActions = (l1WalletClient: WalletClient) => ({
       Account | undefined,
       Chain | undefined,
       SendTransactionRequest
-    >
+    > & { mineBoost?: Hex }
   ): Promise<SendTransactionReturnType> => {
     return sendFacetTransaction(l1WalletClient, parameters);
+  },
+
+  /**
+   * Sends a raw transaction through the Facet protocol using the bound L1 wallet client
+   *
+   * @param parameters - The Facet transaction parameters
+   * @returns A promise that resolves to the transaction result containing L1 and Facet transaction hashes
+   */
+  sendRawFacetTransaction: (
+    parameters: FacetTransactionParams
+  ): Promise<{
+    l1TransactionHash: Hex;
+    facetTransactionHash: Hex;
+    fctMintAmount: bigint;
+    fctMintRate: bigint;
+  }> => {
+    if (!l1WalletClient.account) {
+      throw new Error("No account");
+    }
+    if (!l1WalletClient.chain) {
+      throw new Error("No chain");
+    }
+
+    return sendRawFacetTransaction(
+      l1WalletClient.chain.id,
+      l1WalletClient.account.address,
+      parameters,
+      (l1Transaction) =>
+        l1WalletClient.sendTransaction({
+          ...l1Transaction,
+          chain: l1WalletClient.chain as Chain | null | undefined,
+          account: (l1WalletClient.account ?? l1Transaction.account) as Account,
+        }),
+      l1WalletClient.transport?.url
+    );
   },
 
   /**
@@ -61,8 +99,8 @@ export const walletL1FacetActions = (l1WalletClient: WalletClient) => ({
       Chain | undefined,
       Account | undefined,
       chainOverride
-    >
+    > & { mineBoost?: Hex }
   ): Promise<WriteContractReturnType> => {
-    return writeFacetContract(l1WalletClient, parameters);
+    return writeFacetContract(l1WalletClient, parameters as any);
   },
 });

@@ -28,20 +28,22 @@ interface L1Transaction {
 }
 
 /**
- * Builds a Facet transaction by preparing the transaction data and sending it to L1.
+ * Sends a raw Facet transaction by preparing the transaction data and submitting it to L1.
  *
  * @param l1ChainId - The chain ID of the L1 network (1 for mainnet, 11155111 for Sepolia)
  * @param account - The address of the account initiating the transaction
  * @param params - Transaction parameters including to, value, and data
  * @param sendL1Transaction - Function to send the L1 transaction and return the transaction hash
+ * @param l1RpcUrl - Optional L1 RPC URL
  * @returns Object containing the L1 transaction hash, Facet transaction hash, FCT mint amount, and FCT mint rate
  * @throws Error if L1 chain is invalid, account is missing, or L2 chain is not configured
  */
-export const buildFacetTransaction = async (
+export const sendRawFacetTransaction = async (
   l1ChainId: number,
   account: Address,
   params: FacetTransactionParams,
-  sendL1Transaction: (l1Transaction: L1Transaction) => Promise<Hex>
+  sendL1Transaction: (l1Transaction: L1Transaction) => Promise<Hex>,
+  l1RpcUrl?: string
 ) => {
   if (l1ChainId !== 1 && l1ChainId !== 11_155_111) {
     throw new Error("Invalid L1 chain");
@@ -115,7 +117,7 @@ export const buildFacetTransaction = async (
 
   const l1PublicClient = createPublicClient({
     chain: l1ChainId === 1 ? mainnet : sepolia,
-    transport: http(),
+    transport: http(l1RpcUrl),
   });
   const estimateL1Gas = await l1PublicClient.estimateGas(l1Transaction);
 

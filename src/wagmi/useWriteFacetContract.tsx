@@ -13,6 +13,7 @@ import {
   Abi,
   ContractFunctionArgs,
   ContractFunctionName,
+  Hex,
   WriteContractErrorType,
 } from "viem";
 import { mainnet, sepolia } from "viem/chains";
@@ -28,6 +29,21 @@ import {
 
 import { writeFacetContract as viemWriteFacetContract } from "../viem/writeFacetContract";
 
+// Define the extended variables type with mineBoost
+type WriteFacetContractVariables<
+  abi extends Abi | readonly unknown[],
+  functionName extends ContractFunctionName<abi, "nonpayable" | "payable">,
+  args extends ContractFunctionArgs<
+    abi,
+    "nonpayable" | "payable",
+    functionName
+  >,
+  config extends Config,
+  chainId extends config["chains"][number]["id"],
+> = WriteContractVariables<abi, functionName, args, config, chainId> & {
+  mineBoost?: Hex;
+};
+
 async function writeFacetContract<
   config extends Config,
   const abi extends Abi | readonly unknown[],
@@ -40,9 +56,18 @@ async function writeFacetContract<
   chainId extends config["chains"][number]["id"],
 >(
   config: config,
-  parameters: WriteContractParameters<abi, functionName, args, config, chainId>
+  parameters: WriteContractParameters<
+    abi,
+    functionName,
+    args,
+    config,
+    chainId
+  > & {
+    mineBoost?: Hex;
+  }
 ): Promise<WriteContractReturnType> {
-  const { account, chainId, connector, __mode, ...rest } = parameters;
+  const { account, chainId, connector, mineBoost, __mode, ...rest } =
+    parameters;
 
   let client;
   if (typeof account === "object" && account?.type === "local")
@@ -73,6 +98,7 @@ async function writeFacetContract<
     ...(request as any),
     ...(account ? { account } : {}),
     chain: chainId ? { id: chainId } : null,
+    mineBoost,
   });
 
   return hash;
@@ -89,7 +115,7 @@ function writeFacetContractMutationOptions<config extends Config>(
   } as const satisfies MutationOptions<
     WriteContractData,
     WriteContractErrorType,
-    WriteContractVariables<
+    WriteFacetContractVariables<
       Abi,
       string,
       readonly unknown[],
@@ -111,7 +137,7 @@ type UseWriteFacetContractParameters<
     | UseMutationParameters<
         WriteContractData,
         WriteContractErrorType,
-        WriteContractVariables<
+        WriteFacetContractVariables<
           Abi,
           string,
           readonly unknown[],
@@ -129,7 +155,7 @@ type UseWriteFacetContractReturnType<
 > = UseMutationReturnType<
   WriteContractData,
   WriteContractErrorType,
-  WriteContractVariables<
+  WriteFacetContractVariables<
     Abi,
     string,
     readonly unknown[],
