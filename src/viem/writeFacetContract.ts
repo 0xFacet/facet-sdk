@@ -84,6 +84,7 @@ export async function writeFacetContract<
     account: account_ = client.account,
     address,
     args,
+    chain = client.chain,
     dataSuffix,
     functionName,
     ...request
@@ -100,19 +101,19 @@ export async function writeFacetContract<
 
   try {
     const { facetTransactionHash } = await sendRawFacetTransaction(
-      client.chain!.id,
-      client.account!.address,
+      chain!.id,
+      account!.address,
       {
         data: `${data}${dataSuffix ? dataSuffix.replace("0x", "") : ""}`,
         to: address,
         value: request.value,
         mineBoost: request.mineBoost,
       },
-      (l1Transaction) =>
+      ({ chainId, ...l1Transaction }) =>
         sendTransaction(client, {
           ...l1Transaction,
-          chain: request.chain,
-          account: (client.account ?? l1Transaction.account) as Account,
+          chain,
+          account,
         })
     );
     return facetTransactionHash;

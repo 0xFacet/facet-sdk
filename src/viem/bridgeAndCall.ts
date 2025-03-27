@@ -99,6 +99,7 @@ export async function bridgeAndCall<
     account: account_ = client.account,
     address,
     args,
+    chain = client.chain,
     functionName,
   } = parameters as WriteContractParameters;
 
@@ -113,7 +114,7 @@ export async function bridgeAndCall<
 
   try {
     const { l1Network, l2Network } = (() => {
-      switch (client.chain?.id) {
+      switch (chain?.id) {
         case mainnet.id:
         case facetMainnet.id:
           return { l1Network: mainnet, l2Network: facetMainnet };
@@ -225,10 +226,10 @@ export async function bridgeAndCall<
 
     const l1TransactionHash = await sendTransaction(client, {
       to: l1Contracts.ETHER_BRIDGE_CONTRACT,
-      chain: client.chain as Chain | null | undefined,
       data: l1TxnData,
       value: ethValue,
-      account: client.account ?? account!,
+      chain,
+      account,
     });
 
     const facetTransactionHash = computeFacetTransactionHash(

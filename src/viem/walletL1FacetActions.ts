@@ -8,6 +8,7 @@ import {
   SendTransactionParameters,
   SendTransactionRequest,
   SendTransactionReturnType,
+  Transport,
   WalletClient,
   WriteContractParameters,
   WriteContractReturnType,
@@ -23,19 +24,28 @@ import { writeFacetContract } from "./writeFacetContract";
  * @param l1WalletClient - The viem wallet client for L1 interactions
  * @returns Object containing facet transaction functions
  */
-export const walletL1FacetActions = (l1WalletClient: WalletClient) => ({
+export const walletL1FacetActions = <
+  transport extends Transport,
+  chain extends Chain | undefined = Chain | undefined,
+  account extends Account | undefined = Account | undefined,
+>(
+  l1WalletClient: WalletClient<transport, chain, account>
+) => ({
   /**
    * Sends a transaction through the Facet protocol using the bound L1 wallet client
    *
    * @param parameters - The transaction parameters
    * @returns A promise that resolves to the transaction hash
    */
-  sendFacetTransaction: (
+  sendFacetTransaction: <
+    const request extends SendTransactionRequest<chain, chainOverride>,
+    chainOverride extends Chain | undefined = undefined,
+  >(
     parameters: SendTransactionParameters<
-      Chain | undefined,
-      Account | undefined,
-      Chain | undefined,
-      SendTransactionRequest
+      chain,
+      account,
+      chainOverride,
+      request
     > & { mineBoost?: Hex }
   ): Promise<SendTransactionReturnType> => {
     return sendFacetTransaction(l1WalletClient, parameters);
@@ -84,10 +94,10 @@ export const walletL1FacetActions = (l1WalletClient: WalletClient) => ({
    */
   writeFacetContract: <
     const abi extends Abi | readonly unknown[],
-    functionName extends ContractFunctionName<abi, "nonpayable" | "payable">,
+    functionName extends ContractFunctionName<abi, "payable" | "nonpayable">,
     args extends ContractFunctionArgs<
       abi,
-      "nonpayable" | "payable",
+      "payable" | "nonpayable",
       functionName
     >,
     chainOverride extends Chain | undefined = undefined,
@@ -96,8 +106,8 @@ export const walletL1FacetActions = (l1WalletClient: WalletClient) => ({
       abi,
       functionName,
       args,
-      Chain | undefined,
-      Account | undefined,
+      chain,
+      account,
       chainOverride
     > & { mineBoost?: Hex }
   ): Promise<WriteContractReturnType> => {
