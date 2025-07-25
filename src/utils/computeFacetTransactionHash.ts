@@ -9,30 +9,32 @@ import { Address, concatHex, Hex, keccak256, toHex, toRlp } from "viem";
  * @param value - The amount of FCT to send with the transaction
  * @param data - The calldata for the transaction
  * @param gasLimit - The maximum amount of gas the transaction can use
- * @param mint - The amount of FCT mint in the transaction
+ * @param mint - The amount of FCT mint in the transaction. If not provided, the transaction is considered Bluebird transaction.
  * @returns A keccak256 hash of the encoded transaction
  */
 export const computeFacetTransactionHash = (
-  l1TransactionHash: Hex,
+  sourceHash: Hex,
   from: Address,
-  to: Address,
+  to: Address | null,
   value: bigint,
   data: Hex,
   gasLimit: bigint,
-  mint: bigint
+  mint?: bigint
 ): Hex => {
   const serializedTransaction = [
-    l1TransactionHash,
+    sourceHash,
     from,
-    to,
+    to ? to : "0x",
     mint ? toHex(mint) : "0x",
     value ? toHex(value) : "0x",
     gasLimit ? toHex(gasLimit) : "0x",
     "0x",
     data,
   ] as Hex[];
+  
+  const txType = mint == null ? "0x7d" : "0x7e";
 
-  const encodedTx = concatHex(["0x7e", toRlp(serializedTransaction)]);
+  const encodedTx = concatHex([txType, toRlp(serializedTransaction)]);
 
   return keccak256(encodedTx);
 };
