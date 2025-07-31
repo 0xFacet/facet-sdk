@@ -19,22 +19,20 @@ export const computeFacetTransactionHash = (
   value: bigint,
   data: Hex,
   gasLimit: bigint,
-  mint?: bigint
+  _mint?: bigint
 ): Hex => {
   const serializedTransaction = [
     sourceHash,
     from,
     to ? to : "0x",
-    mint ? toHex(mint) : "0x",
+    "0x",
     value ? toHex(value) : "0x",
     gasLimit ? toHex(gasLimit) : "0x",
     "0x",
     data,
   ] as Hex[];
   
-  const txType = mint == null ? "0x7d" : "0x7e";
-
-  const encodedTx = concatHex([txType, toRlp(serializedTransaction)]);
+  const encodedTx = concatHex(["0x7d", toRlp(serializedTransaction)]);
 
   return keccak256(encodedTx);
 };
