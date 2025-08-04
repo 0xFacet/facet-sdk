@@ -10,7 +10,7 @@ import {
   Transport,
 } from "viem";
 import { sendTransaction } from "viem/actions";
-import { getTransactionError } from "viem/utils";
+import { getTransactionError, parseAccount } from "viem/utils";
 
 import { sendRawFacetTransaction } from "../utils";
 
@@ -59,22 +59,27 @@ export async function sendFacetTransaction<
   > & { mineBoost?: Hex }
 ): Promise<SendTransactionReturnType> {
   try {
+    const chain = (parameters.chain ?? client.chain) as Chain | chain | null;
+    const accountOrAddress = parameters.account ?? client.account;
+    const account = accountOrAddress ? parseAccount(accountOrAddress) : null;
+
     const { facetTransactionHash } = await sendRawFacetTransaction(
-      client.chain!.id,
-      client.account!.address,
+      chain!.id,
+      account!.address,
       {
         data: parameters.data,
         to: parameters.to,
         value: parameters.value,
         mineBoost: parameters.mineBoost,
       },
-      (l1Transaction) =>
+      ({ chainId, ...l1Transaction }) =>
         sendTransaction(client, {
           ...l1Transaction,
-          chain: client.chain as Chain | null | undefined,
-          account: (client.account ?? l1Transaction.account) as Account,
+          chain,
+          account,
         })
     );
+
     return facetTransactionHash;
   } catch (err) {
     throw getTransactionError(err as BaseError, {

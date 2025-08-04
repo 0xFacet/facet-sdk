@@ -115,9 +115,14 @@ export const sendRawFacetTransaction = async (
     chainId: l1ChainId,
   };
 
+  const l1TransportUrl =
+    l1ChainId === 1
+      ? "https://ethereum-rpc.publicnode.com"
+      : "https://ethereum-sepolia-rpc.publicnode.com";
+
   const l1PublicClient = createPublicClient({
     chain: l1ChainId === 1 ? mainnet : sepolia,
-    transport: http(l1RpcUrl),
+    transport: http(l1RpcUrl || l1TransportUrl),
   });
   const estimateL1Gas = await l1PublicClient.estimateGas(l1Transaction);
 
