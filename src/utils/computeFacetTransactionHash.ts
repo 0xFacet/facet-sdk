@@ -24,7 +24,7 @@ export const computeFacetTransactionHash = (
   const serializedTransaction = [
     sourceHash,
     from,
-    to ? to : "0x",
+    to ?? "0x",
     "0x",
     value ? toHex(value) : "0x",
     gasLimit ? toHex(gasLimit) : "0x",
